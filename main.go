@@ -1,25 +1,42 @@
 package main
 
 import (
-  	"github.com/tarm/serial"
+  	"github.com/mikepb/go-serial"
   	"log"
-	"fmt"
  	"os"
 	"net"
 )
 
+var serverEndpoint, runningAs string
+var f os.File
+
 func main() {
+
 	log.Println("PI Alarm Application ....");
-	serverEndpoint := os.Getenv("PI_ALARM_SERVER_ENDPOINT")
-	runningAs := os.Getenv("PI_ALARM_RUNNING_MODE")
-	fmt.Println("running as: " + runningAs)
-	fmt.Println("server endpoint: " + serverEndpoint)
 
 	if "CLIENT" == runningAs {
 		processRFReceiver(serverEndpoint)
 	} else {
 		processAlarmSensors(serverEndpoint)
 	}
+
+	f.Close()
+}
+
+func init() {
+	f, err := os.OpenFile("./alarm.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	
+	serverEndpoint = os.Getenv("PI_ALARM_SERVER_ENDPOINT")
+	runningAs = os.Getenv("PI_ALARM_RUNNING_MODE")
+	
+	log.Println("running as: " + runningAs)
+	log.Println("server endpoint: " + serverEndpoint)
+
+	if err != nil {
+    	log.Fatalf("error opening file: %v", err)
+	}
+	
+	log.SetOutput(f)
 }
 
 /**
@@ -33,7 +50,7 @@ func processAlarmSensors(serverEndpoint string) {
 
 	for {
 		buf := receiveFromClient(serverEndpoint)
-		fmt.Println("'" + buf + "'")
+		log.Println("'" + buf + "'")
 	}
 }
 
@@ -49,35 +66,37 @@ func processAlarmSensors(serverEndpoint string) {
  */
 func processRFReceiver(serverEndpoint string) {
 	log.Println("processing RF Receiver begins .... " + serverEndpoint);
-	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
-	p, err := serial.OpenPort(c)
+
+  	options := serial.RawOptions
+  	options.BitRate = 9600
+  	p, err := options.Open("/dev/ttyAMA0")
 
   	if err != nil {
-    	log.Fatal(err)
+    	log.Panic(err)
   	}
 
   	defer p.Close()
   
 	for {
   		buf := make([]byte, 1)
-  		if n, err := p.Read(buf); err == nil {
+  		if c, err := p.Read(buf); err == nil {
 			if buf[0] == 'a' {
 				buf = make([]byte, 11)
 				p.Read(buf)
 				postToServer(serverEndpoint, string(buf))
-   				fmt.Println(">>>" + string(buf) + "<<<")
+   				log.Println(">>>" + string(buf) + "<<<")
 			} else {
-    			fmt.Print(buf)
-    			fmt.Print(string(buf))
+    			log.Print(buf)
+    			log.Print(string(buf))
 			}
   		} else {
-    		log.Println(n)
+    		log.Println(c)
     		log.Panic(err)
-			fmt.Println("PI Alarm Receiver ERROR!....");
+			log.Println("PI Alarm Receiver ERROR!....");
   		}
 	}
 
-	log.Println("processing RF Receiver ends ....");
+log.Println("processing RF Receiver ends ....");
 }
 
 /**
