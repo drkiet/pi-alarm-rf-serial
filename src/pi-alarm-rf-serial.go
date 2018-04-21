@@ -5,10 +5,11 @@ import (
   	"log"
  	"os"
 	"net"
+	"fmt"
 )
 
-var serverEndpoint, runningAs string
-var f os.File
+var serverEndpoint, runningAs, repeaterEndpoint string
+var file os.File
 
 func main() {
 
@@ -16,27 +17,43 @@ func main() {
 
 	if "CLIENT" == runningAs {
 		processRFReceiver(serverEndpoint)
-	} else {
+	} else if "SERVER" == runningAs {
 		processAlarmSensors(serverEndpoint)
+	} else if "UDP_REPEATER" == runningAs {
+		processUdpRepeater(serverEndpoint, repeaterEndpoint)
+	} else {
+		logMsg("Invalid runningAs: " + runningAs)
 	}
 
-	f.Close()
+	file.Close()
 }
 
 func init() {
-	f, err := os.OpenFile("./alarm.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	file, err := os.OpenFile("./alarm.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
 	
 	serverEndpoint = os.Getenv("PI_ALARM_SERVER_ENDPOINT")
+	repeaterEndpoint = os.Getenv("PI_ALARM_REPEATER_ENDPOINT")
 	runningAs = os.Getenv("PI_ALARM_RUNNING_MODE")
 	
-	log.Println("running as: " + runningAs)
-	log.Println("server endpoint: " + serverEndpoint)
+	logMsg("running as: " + runningAs)
+	logMsg("server endpoint: " + serverEndpoint)
+	logMsg("repeater endpoint: " + repeaterEndpoint)
 
 	if err != nil {
     	log.Fatalf("error opening file: %v", err)
+    	fmt.Println(err)
 	}
 	
-	log.SetOutput(f)
+	log.SetOutput(file)
+}
+
+/**
+ * Log into a log file -
+ * Then, print it on screen
+ */
+func logMsg(msg string) {
+	log.Println(msg)
+	fmt.Println(msg)
 }
 
 /**
@@ -50,7 +67,40 @@ func processAlarmSensors(serverEndpoint string) {
 
 	for {
 		buf := receiveFromClient(serverEndpoint)
-		log.Println("'" + buf + "'")
+		logMsg("received: '" + buf + "'")
+	}
+}
+
+/**
+ * This function processes the buffer receiving from the alarm sensor:
+ * Starts with:
+ * - BUTTON
+ * - BTN
+ * - TMP
+ * - HUM
+ * - BATT
+ *
+ * - SLEEPING
+ * - STARTED
+ * - AWAKE
+ */
+func processSensorMessage(buf string) {
+
+}
+
+/**
+ * This function acts as a repeater for the UDP protocol. It receives a message
+ * from a server endpoint, the repeate the same message to the repeater endpoint.
+ * 
+ */
+func processUdpRepeater(serverEndpoint string, repeaterEndpoing string) {
+	log.Println ("processing UDP Repeater begins ... " + serverEndpoint + " --> " + repeaterEndpoing)
+
+	for {
+		buf := receiveFromClient(serverEndpoint)
+		logMsg("received: '" + buf + "'")
+		postToServer(repeaterEndpoing, buf)
+		logMsg("repeating: '" + buf + "'")
 	}
 }
 
@@ -65,7 +115,7 @@ func processAlarmSensors(serverEndpoint string) {
  *
  */
 func processRFReceiver(serverEndpoint string) {
-	log.Println("processing RF Receiver begins .... " + serverEndpoint);
+	logMsg("processing RF Receiver begins .... " + serverEndpoint);
 
   	options := serial.RawOptions
   	options.BitRate = 9600
@@ -73,6 +123,7 @@ func processRFReceiver(serverEndpoint string) {
 
   	if err != nil {
     	log.Panic(err)
+    	fmt.Println(err)
   	}
 
   	defer p.Close()
@@ -84,11 +135,8 @@ func processRFReceiver(serverEndpoint string) {
 				buf = make([]byte, 11)
 				p.Read(buf)
 				postToServer(serverEndpoint, string(buf))
-   				log.Println(">>>" + string(buf) + "<<<")
-			} else {
-    			log.Print(buf)
-    			log.Print(string(buf))
-			}
+			} 
+			logMsg("'" + string(buf) + "'")
   		} else {
     		log.Println(c)
     		log.Panic(err)
@@ -96,7 +144,7 @@ func processRFReceiver(serverEndpoint string) {
   		}
 	}
 
-log.Println("processing RF Receiver ends ....");
+	logMsg("processing RF Receiver ends ....");
 }
 
 /**
@@ -104,10 +152,11 @@ log.Println("processing RF Receiver ends ....");
  *
  */
 func postToServer(serverEndpoint string, buf string) {
-	log.Println("posting data to server endpoint ... " + serverEndpoint)
+	logMsg("posting data to server endpoint ... " + serverEndpoint)
 	conn, err := net.Dial("udp", serverEndpoint)	
 	if err != nil {
 		log.Panic(err)
+		fmt.Println(err)
 		return 
 	}
 
@@ -115,7 +164,7 @@ func postToServer(serverEndpoint string, buf string) {
 	
 	conn.Write([]byte(buf))
 
-	log.Println("posting data ends ...")
+	logMsg("posting data ends ...")
 }
 
 /**
@@ -126,6 +175,7 @@ func receiveFromClient(serverEndpoint string) (buf string) {
 	
 	if err != nil {
 		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	defer conn.Close()
@@ -135,4 +185,3 @@ func receiveFromClient(serverEndpoint string) (buf string) {
 
 	return string(buffer)
 }
-
