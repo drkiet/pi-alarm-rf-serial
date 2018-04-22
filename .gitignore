@@ -1,5 +1,5 @@
 # Binaries for programs and plugins
-main
+pi-alarm-rf-serial
 bin
 pkg
 *.log

@@ -6,6 +6,9 @@ import (
  	"os"
 	"net"
 	"fmt"
+	"bytes"
+	"strings"
+	"time"
 )
 
 var serverEndpoint, runningAs, repeaterEndpoint string
@@ -85,6 +88,21 @@ func processAlarmSensors(serverEndpoint string) {
  * - AWAKE
  */
 func processSensorMessage(buf string) {
+	if strings.HasPrefix(buf, "BUTTON") {
+		processButton(buf[7:8], buf[8:])
+	} else if strings.HasPrefix(buf, "BATT") {
+		processBattery()
+	} else {
+		logMsg("NOT supported feature: " + buf)
+	}
+}
+
+
+func processButton(id string, status string) {
+
+}
+
+func processBattery() {
 
 }
 
@@ -162,7 +180,16 @@ func postToServer(serverEndpoint string, buf string) {
 
 	defer conn.Close()
 	
-	conn.Write([]byte(buf))
+	var eventBuf bytes.Buffer
+	eventBuf.WriteString("{\"time\" : \"")
+	eventBuf.WriteString(time.Now().String())
+	eventBuf.WriteString("\", \"reason\" : \"")
+	eventBuf.WriteString(buf);
+	eventBuf.WriteString("\", \"message\" : \"from PI Alarm\", \"id\" : \"")
+	eventBuf.WriteString(getMacAddr()) 
+	eventBuf.WriteString("\"}")
+
+	conn.Write([]byte(eventBuf.String()))
 
 	logMsg("posting data ends ...")
 }
@@ -184,4 +211,18 @@ func receiveFromClient(serverEndpoint string) (buf string) {
 	conn.ReadFrom(buffer)
 
 	return string(buffer)
+}
+
+func getMacAddr() (addr string) {
+	interfaces, err := net.Interfaces()
+	if err == nil {
+		for _, i := range interfaces {
+			if i.Flags&net.FlagUp != 0 && bytes.Compare(i.HardwareAddr, nil) != 0 {
+				// Don't use random as we have a real address
+				addr = i.HardwareAddr.String()
+				break
+			}
+		}
+	}
+	return
 }
