@@ -6,9 +6,7 @@ import (
  	"os"
 	"net"
 	"fmt"
-	"bytes"
 	"strings"
-	"time"
 )
 
 var serverEndpoint, runningAs, repeaterEndpoint string
@@ -18,12 +16,14 @@ func main() {
 
 	log.Println("PI Alarm Application ....");
 
-	if "CLIENT" == runningAs {
-		processRFReceiver(serverEndpoint)
-	} else if "SERVER" == runningAs {
-		processAlarmSensors(serverEndpoint)
+	if "UDP_CLIENT" == runningAs {
+		processUdpClient(serverEndpoint)
+	} else if "UDP_SERVER" == runningAs {
+		processUdpServer(serverEndpoint)
 	} else if "UDP_REPEATER" == runningAs {
 		processUdpRepeater(serverEndpoint, repeaterEndpoint)
+	} else if "HTTP_SERVER" == runningAs {
+		ProcessHttpServer(serverEndpoint, file)
 	} else {
 		logMsg("Invalid runningAs: " + runningAs)
 	}
@@ -65,11 +65,11 @@ func logMsg(msg string) {
  * In addition, it logs all incoming data in the order it receives
  * into a logfile.
  */
-func processAlarmSensors(serverEndpoint string) {
+func processUdpServer(serverEndpoint string) {
 	log.Println ("processing alarm sensors begins ... " + serverEndpoint)
 
 	for {
-		buf := receiveFromClient(serverEndpoint)
+		buf := receiveFromUdpClient(serverEndpoint)
 		logMsg("received: '" + buf + "'")
 	}
 }
@@ -115,9 +115,9 @@ func processUdpRepeater(serverEndpoint string, repeaterEndpoing string) {
 	log.Println ("processing UDP Repeater begins ... " + serverEndpoint + " --> " + repeaterEndpoing)
 
 	for {
-		buf := receiveFromClient(serverEndpoint)
+		buf := receiveFromUdpClient(serverEndpoint)
 		logMsg("received: '" + buf + "'")
-		postToServer(repeaterEndpoing, buf)
+		postToUdpServer(repeaterEndpoing, buf)
 		logMsg("repeating: '" + buf + "'")
 	}
 }
@@ -132,8 +132,8 @@ func processUdpRepeater(serverEndpoint string, repeaterEndpoing string) {
  * at PI_ALARM_SERVER_ENDPOINT.
  *
  */
-func processRFReceiver(serverEndpoint string) {
-	logMsg("processing RF Receiver begins .... " + serverEndpoint);
+func processUdpClient(serverEndpoint string) {
+	logMsg("processing UDP Client begins .... " + serverEndpoint);
 
   	options := serial.RawOptions
   	options.BitRate = 9600
@@ -152,7 +152,7 @@ func processRFReceiver(serverEndpoint string) {
 			if buf[0] == 'a' {
 				buf = make([]byte, 11)
 				p.Read(buf)
-				postToServer(serverEndpoint, string(buf))
+				postToUdpServer(serverEndpoint, string(buf))
 			} 
 			logMsg("'" + string(buf) + "'")
   		} else {
@@ -162,42 +162,15 @@ func processRFReceiver(serverEndpoint string) {
   		}
 	}
 
-	logMsg("processing RF Receiver ends ....");
+	logMsg("processing UDP Client ends ....");
 }
 
-/**
- * posting buffer to server
- *
- */
-func postToServer(serverEndpoint string, buf string) {
-	logMsg("posting data to server endpoint ... " + serverEndpoint)
-	conn, err := net.Dial("udp", serverEndpoint)	
-	if err != nil {
-		log.Panic(err)
-		fmt.Println(err)
-		return 
-	}
 
-	defer conn.Close()
-	
-	var eventBuf bytes.Buffer
-	eventBuf.WriteString("{\"time\" : \"")
-	eventBuf.WriteString(time.Now().String())
-	eventBuf.WriteString("\", \"reason\" : \"")
-	eventBuf.WriteString(buf);
-	eventBuf.WriteString("\", \"message\" : \"from PI Alarm\", \"id\" : \"")
-	eventBuf.WriteString(getMacAddr()) 
-	eventBuf.WriteString("\"}")
-
-	conn.Write([]byte(eventBuf.String()))
-
-	logMsg("posting data ends ...")
-}
 
 /**
  * reading from a post from a client
  */
-func receiveFromClient(serverEndpoint string) (buf string) {
+func receiveFromUdpClient(serverEndpoint string) (buf string) {
 	conn, err := net.ListenPacket("udp", serverEndpoint)
 	
 	if err != nil {
@@ -211,18 +184,4 @@ func receiveFromClient(serverEndpoint string) (buf string) {
 	conn.ReadFrom(buffer)
 
 	return string(buffer)
-}
-
-func getMacAddr() (addr string) {
-	interfaces, err := net.Interfaces()
-	if err == nil {
-		for _, i := range interfaces {
-			if i.Flags&net.FlagUp != 0 && bytes.Compare(i.HardwareAddr, nil) != 0 {
-				// Don't use random as we have a real address
-				addr = i.HardwareAddr.String()
-				break
-			}
-		}
-	}
-	return
 }
