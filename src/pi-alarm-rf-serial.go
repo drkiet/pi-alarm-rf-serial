@@ -18,6 +18,8 @@ func main() {
 
 	if "UDP_CLIENT" == runningAs {
 		processUdpClient(serverEndpoint)
+	} else if "HTTP_CLIENT" == runningAs {
+		processHttpClient(serverEndpoint)
 	} else if "UDP_SERVER" == runningAs {
 		processUdpServer(serverEndpoint)
 	} else if "UDP_REPEATER" == runningAs {
@@ -74,6 +76,38 @@ func processUdpServer(serverEndpoint string) {
 	}
 }
 
+func ProcessHttpClient(serverEndpoint string) {
+	logMsg("processing HTTP Client begins .... " + serverEndpoint);
+
+  	options := serial.RawOptions
+  	options.BitRate = 9600
+  	p, err := options.Open("/dev/ttyAMA0")
+
+  	if err != nil {
+    	log.Panic(err)
+    	fmt.Println(err)
+  	}
+
+  	defer p.Close()
+  
+	for {
+  		buf := make([]byte, 1)
+  		if c, err := p.Read(buf); err == nil {
+			if buf[0] == 'a' {
+				buf = make([]byte, 11)
+				p.Read(buf)
+				postToHttpServer(serverEndpoint, string(buf))
+			} 
+			logMsg("'" + string(buf) + "'")
+  		} else {
+    		log.Println(c)
+    		log.Panic(err)
+			log.Println("PI Alarm Receiver ERROR!....");
+  		}
+	}
+
+	logMsg("processing HTTP Client ends ....");
+}
 /**
  * This function processes the buffer receiving from the alarm sensor:
  * Starts with:
@@ -168,3 +202,45 @@ func processUdpClient(serverEndpoint string) {
 }
 
 
+/**
+ * This code should run on the pi with an attached Wireless Based Station
+ * Transmitter/Receiver: 
+ * https://ha.privateeyepi.com/store/index.php?route=product/product&product_id=66
+ *
+ * Main function:
+ * Read data from an RF receiver and retransmit exactly to a UDP listener located
+ * at PI_ALARM_SERVER_ENDPOINT.
+ *
+ */
+func processHttpClient(serverEndpoint string) {
+	logMsg("processing HTTP Client begins .... " + serverEndpoint);
+
+  	options := serial.RawOptions
+  	options.BitRate = 9600
+  	p, err := options.Open("/dev/ttyAMA0")
+
+  	if err != nil {
+    	log.Panic(err)
+    	fmt.Println(err)
+  	}
+
+  	defer p.Close()
+  
+	for {
+  		buf := make([]byte, 1)
+  		if c, err := p.Read(buf); err == nil {
+			if buf[0] == 'a' {
+				buf = make([]byte, 11)
+				p.Read(buf)
+				postToHttpServer(serverEndpoint, string(buf))
+			} 
+			logMsg("'" + string(buf) + "'")
+  		} else {
+    		log.Println(c)
+    		log.Panic(err)
+			log.Println("PI Alarm Receiver ERROR!....");
+  		}
+	}
+
+	logMsg("processing HTTP Client ends ....");
+}

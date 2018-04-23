@@ -7,6 +7,8 @@ import (
     "os"
     "log"
     "time"
+    "bytes"
+    "io/ioutil"
 )
 
 type Event struct {
@@ -41,4 +43,31 @@ func ProcessHttpServer(serverEndpoint string, file os.File) {
     router := mux.NewRouter()
     router.HandleFunc("/event/{id}", PostEvent).Methods("POST")
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
+}
+
+/**
+ * posting buffer to server
+ *
+ */
+func postToHttpServer(serverEndpoint string, buf string) {
+	logMsg("posting data to HTTP server endpoint ... " + serverEndpoint)
+
+	var event Event
+		
+	event.Time = time.Now().String()
+	event.Reason = buf
+	event.Message = "from PI Alarm"
+	event.ID = getMacAddr()
+
+	jsonBuf, _ := json.Marshal(event)
+
+	resp, err := http.Post(serverEndpoint, "application/json", bytes.NewBuffer(jsonBuf))
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		data, _ := ioutil.ReadAll(resp.Body)
+		logMsg(string(data))
+	}
+
+	logMsg("posting data ends ...")
 }
