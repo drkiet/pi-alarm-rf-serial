@@ -34,3 +34,24 @@ func postToUdpServer(serverEndpoint string, buf string) {
 
 	logMsg("posting data ends ...")
 }
+
+
+/**
+ * reading from a post from a client
+ */
+func receiveFromUdpClient(serverEndpoint string) (buf string) {
+	conn, err := net.ListenPacket("udp", serverEndpoint)
+	
+	if err != nil {
+		log.Fatal(err)
+		fmt.Println(err)
+	}
+
+	defer conn.Close()
+
+	buffer := make([] byte, 1024)
+	size, _, _ := conn.ReadFrom(buffer)
+
+	buf = string(buffer[:size])
+	return 
+}

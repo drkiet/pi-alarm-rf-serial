@@ -4,8 +4,8 @@ import (
   	"github.com/mikepb/go-serial"
   	"log"
  	"os"
-	"net"
 	"fmt"
+	"encoding/json"
 	"strings"
 )
 
@@ -117,8 +117,10 @@ func processUdpRepeater(serverEndpoint string, repeaterEndpoing string) {
 	for {
 		buf := receiveFromUdpClient(serverEndpoint)
 		logMsg("received: '" + buf + "'")
-		postToUdpServer(repeaterEndpoing, buf)
-		logMsg("repeating: '" + buf + "'")
+		var event Event
+    	_ = json.Unmarshal([]byte(buf), &event)
+		postToUdpServer(repeaterEndpoing, event.Reason)
+		logMsg("repeating: '" + event.Reason + "'")
 	}
 }
 
@@ -166,22 +168,3 @@ func processUdpClient(serverEndpoint string) {
 }
 
 
-
-/**
- * reading from a post from a client
- */
-func receiveFromUdpClient(serverEndpoint string) (buf string) {
-	conn, err := net.ListenPacket("udp", serverEndpoint)
-	
-	if err != nil {
-		log.Fatal(err)
-		fmt.Println(err)
-	}
-
-	defer conn.Close()
-
-	buffer := make([] byte, 1024)
-	conn.ReadFrom(buffer)
-
-	return string(buffer)
-}
