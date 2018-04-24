@@ -29,9 +29,10 @@ func PostToUdpServer(serverEndpoint string, reason string) {
 	event.Message = "from PI Alarm"
 	event.ID = GetMacAddr()
 
-	json.NewEncoder(conn).Encode(event)
 	buf, _ := json.Marshal(event)
-	LogMsg("PostToUdpServer: receives: " + string(buf))
+	LogMsg("PostToUdpServer: posting: " + string(buf))
+
+	json.NewEncoder(conn).Encode(event)
 	LogMsg("PostToUdpServer: ends")
 }
 
@@ -71,6 +72,10 @@ func ServeUdpProcessEvent(serverEndpoint string) {
 		buf, address := ReceiveFromUdpClient(serverEndpoint)
 		logtext := fmt.Sprintf("received %s from %s", buf, address)
 		LogMsg("ServeUdpProcessEvent: " + logtext)
+		
+		var event Event
+    	_ = json.Unmarshal([]byte(buf), &event)
+		ProcessSensorEvent(event)
 	}
 }
 

@@ -25,7 +25,7 @@ export PI_ALARM_LOG_FILE_NAME=$3
 export PI_ALARM_REPEATER_ENDPOINT=$4
 
 cd src
-go install pi-alarm-rf-serial.go utils.go http.go udp.go rf_tx_rx.go sensor.go
+go install pi_alarm_rf_serial.go utils.go http.go udp.go rf_tx_rx.go sensor.go
 cd ..
-$GOBIN/pi-alarm-rf-serial
+$GOBIN/pi_alarm_rf_serial
 

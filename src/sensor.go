@@ -35,3 +35,8 @@ func ProcessButton(id string, status string) {
 func ProcessBattery() {
 
 }
+
+func ProcessSensorEvent(event Event) {
+	LogMsg ("ProcessSensorEvent: " + event.Reason)
+	LogMsg ("ProcessSensorEvent: ends")
+}
