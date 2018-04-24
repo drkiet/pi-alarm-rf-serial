@@ -7,6 +7,11 @@ import (
 
 var port *serial.Port
 
+/**
+ * Create a serial port for use in reading message ...
+ * device name: /dev/ttyAMA0
+ * speed: 9600
+ */
 func RfInitialize(device string, bitRate int) {
 	LogMsg("RfInitialize: " + device);
 	options := serial.RawOptions
@@ -23,6 +28,10 @@ func RfInitialize(device string, bitRate int) {
   	LogMsg("RfInitialize: ends");
 }
 
+/**
+ * Port must be first initilized. Then, it can receive sensor data/events.
+ *
+ */
 func RfReceive() (sensorEvent string) {
 	LogMsg("RfReceive: " + serverEndpoint);
 

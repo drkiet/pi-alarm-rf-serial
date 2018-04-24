@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 	"log"
+	"fmt"
 )
 
 /**
@@ -29,6 +30,8 @@ func PostToUdpServer(serverEndpoint string, reason string) {
 	event.ID = GetMacAddr()
 
 	json.NewEncoder(conn).Encode(event)
+	buf, _ := json.Marshal(event)
+	LogMsg("PostToUdpServer: receives: " + string(buf))
 	LogMsg("PostToUdpServer: ends")
 }
 
@@ -36,7 +39,7 @@ func PostToUdpServer(serverEndpoint string, reason string) {
 /**
  * Listening to a UDP connection request & then read the message into a buffer
  */
-func ReceiveFromUdpClient(serverEndpoint string) (buf string) {
+func ReceiveFromUdpClient(serverEndpoint string) (buf string, address string) {
 	LogMsg("ReceiveFromUdpClient: " + serverEndpoint)
 	conn, err := net.ListenPacket("udp", serverEndpoint)
 	
@@ -47,9 +50,10 @@ func ReceiveFromUdpClient(serverEndpoint string) (buf string) {
 	defer conn.Close()
 
 	buffer := make([] byte, 1024)
-	size, _, _ := conn.ReadFrom(buffer)
+	size, addr, _ := conn.ReadFrom(buffer)
 
 	buf = string(buffer[:size])
+	address = addr.String()
 	LogMsg("ReceiveFromUdpClient: ends")
 	return
 }
@@ -64,8 +68,9 @@ func ServeUdpProcessEvent(serverEndpoint string) {
 	LogMsg ("ServeUdpProcessEvent: " + serverEndpoint)
 
 	for {
-		buf := ReceiveFromUdpClient(serverEndpoint)
-		LogMsg("received: '" + buf + "'")
+		buf, address := ReceiveFromUdpClient(serverEndpoint)
+		logtext := fmt.Sprintf("received %s from %s", buf, address)
+		LogMsg("ServeUdpProcessEvent: " + logtext)
 	}
 }
 
@@ -78,12 +83,14 @@ func ServeUdpPostUdp(serverEndpoint string, repeaterEndpoing string) {
 	LogMsg ("ServeUdpPostUdp: " + serverEndpoint + " --> " + repeaterEndpoing)
 
 	for {
-		buf := ReceiveFromUdpClient(serverEndpoint)
-		LogMsg("ServeUdpPostUdp: received: '" + buf + "'")
+		buf, address := ReceiveFromUdpClient(serverEndpoint)
 		var event Event
     	_ = json.Unmarshal([]byte(buf), &event)
 		PostToUdpServer(repeaterEndpoing, event.Reason)
-		LogMsg("ServeUdpPostUdp: repeating: '" + event.Reason + "'")
+
+		logtext := fmt.Sprintf("receiving %s from %s and repeating %s to %s", 
+							   buf, address, event.Reason, repeaterEndpoing)
+		LogMsg("ServeUdpPostUdp: " + logtext)
 	}
 }
 
