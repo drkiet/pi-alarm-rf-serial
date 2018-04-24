@@ -95,7 +95,7 @@ func main() {
 	} else if "UDP_REPEATER" == runningAs {
 		ServeUdpPostUdp(serverEndpoint, repeaterEndpoint)
 	} else if "EVENT_HTTP_SERVER" == runningAs {
-		ServeRfRxPostHttp(serverEndpoint)
+		ServeHttpProcessEvent(serverEndpoint)
 	} else {
 		LogMsg(runningAs + " is an invalid running mode")
 	}

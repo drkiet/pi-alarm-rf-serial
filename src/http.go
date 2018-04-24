@@ -4,7 +4,6 @@ import (
     "encoding/json"
     "github.com/gorilla/mux"
     "net/http"
-    "os"
     "log"
     "time"
     "bytes"
@@ -56,7 +55,8 @@ func PostToHttpServer(serverEndpoint string, reason string) {
 
 	jsonBuf, _ := json.Marshal(event)
 
-	serverEndpoint = fmt.Sprintf("%s/event/%s", serverEndpoint, event.ID)
+	serverEndpoint = fmt.Sprintf("%s/event/%s", serverEndpoint, 
+								 strings.Replace(event.ID, ":", "_", -1))
 	resp, err := http.Post(serverEndpoint, "application/json", bytes.NewBuffer(jsonBuf))
 	if err != nil {
 		log.Fatal(err)
@@ -70,7 +70,7 @@ func PostToHttpServer(serverEndpoint string, reason string) {
 
 /**
  */
-func ServeHttpProcessEvent(serverEndpoint string, file os.File) {
+func ServeHttpProcessEvent(serverEndpoint string) {
 	LogMsg("ServeHttpProcessEvent: " + serverEndpoint)
     router := mux.NewRouter()
     router.HandleFunc("/event/{id}", PostEvent).Methods("POST")
