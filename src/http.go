@@ -7,6 +7,7 @@ import (
     "log"
     "time"
     "bytes"
+    "strings"
     "fmt"
     "io/ioutil"
     "github.com/mikepb/go-serial"
