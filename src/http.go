@@ -56,8 +56,8 @@ func PostToHttpServer(serverEndpoint string, reason string) {
 
 	jsonBuf, _ := json.Marshal(event)
 
-	serverEndpoint = fmt.Sprintf("%s/event/%s", serverEndpoint, 
-								 strings.Replace(event.ID, ":", "_", -1))
+	serverEndpoint = fmt.Sprintf("%s/event/%s", serverEndpoint, event.ID)
+
 	resp, err := http.Post(serverEndpoint, "application/json", bytes.NewBuffer(jsonBuf))
 	if err != nil {
 		log.Fatal(err)
