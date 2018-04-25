@@ -6,7 +6,7 @@ import (
 )
 
 var serverEndpoint, runningAs, repeaterEndpoint, logFileName string
-var file os.File
+
 
 /**
  * Collecting required parameters via OS environment variables.
@@ -19,22 +19,12 @@ func init() {
 	runningAs = os.Getenv("PI_ALARM_RUNNING_MODE")
 	logFileName = os.Getenv("PI_ALARM_LOG_FILE_NAME")
 
-	file, err := os.OpenFile(logFileName, 
-							 os.O_RDWR | 
-							 os.O_CREATE | 
-							 os.O_APPEND, 0666)
-	
-	
 	LogMsg("*** running as: " + runningAs)
 	LogMsg("*** server endpoint: " + serverEndpoint)
 	LogMsg("*** repeater endpoint: " + repeaterEndpoint)
 	LogMsg("*** Log File Name: " + logFileName)
 
-	if err != nil {
-    	log.Fatalf("error opening file: %v", err)
-	}
-	
-	log.SetOutput(file)
+	log.SetOutput(MakeLogFile(logFileName))
 }
 
 /**
@@ -87,18 +77,16 @@ func main() {
 	LogMsg("main: running")
 
 	if "RF_RECEIVER_TO_UDP" == runningAs {
-		ServeRfRxPostUdp(serverEndpoint)
+		ServeRfRxPostUdp()
 	} else if "RF_RECEIVER_TO_HTTP" == runningAs {
-		ServeRfRxPostHttp(serverEndpoint)
+		ServeRfRxPostHttp()
 	} else if "EVENT_UDP_SERVER" == runningAs {
-		ServeUdpProcessEvent(serverEndpoint)
+		ServeUdpProcessEvent()
 	} else if "UDP_REPEATER" == runningAs {
-		ServeUdpPostUdp(serverEndpoint, repeaterEndpoint)
+		ServeUdpPostUdp()
 	} else if "EVENT_HTTP_SERVER" == runningAs {
-		ServeHttpProcessEvent(serverEndpoint)
+		ServeHttpProcessEvent()
 	} else {
 		LogMsg(runningAs + " is an invalid running mode")
 	}
-
-	file.Close()
 }

@@ -4,6 +4,7 @@ import (
 	"net"
 	"bytes"
 	"log"
+	"os"
 )
 
 /**
@@ -30,4 +31,12 @@ func LogMsg(msg string) {
 	log.Println(msg)
 }
 
+
+func MakeLogFile(fileName string) (file *os.File) {
+	file, _ = os.OpenFile(fileName, 
+					   os.O_RDWR | 
+					   os.O_CREATE | 
+					   os.O_APPEND, 0666)
+	return
+}
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-    "encoding/json"
     "github.com/gorilla/mux"
     "net/http"
     "log"
@@ -9,71 +8,57 @@ import (
     "bytes"
     "fmt"
     "io/ioutil"
-    "github.com/mikepb/go-serial"
 )
 
-type Event struct {
-    ID      string  `json:"id,omitempty"`
-    Time 	string  `json:"time,omitempty"`
-    Message string  `json:"message,omitempty"`
-    Reason  string 	`json:"reason,omitempty"`
-}
-
 /**
- * An HTTP Server receives a POST.
+ * An event arrives
+ * The event is queued
+ * The response is immediate returned to publisher/poster
+ * 
+ *
  */
 func PostEvent(w http.ResponseWriter, r *http.Request) {
-	LogMsg("PostEvent: ")
-
     params := mux.Vars(r)
-    var event Event
-    _ = json.NewDecoder(r.Body).Decode(&event)
+    id := params["id"]
+    
+    jsonEvent, _ := ioutil.ReadAll(r.Body)
+    QueueJsonEvent(id, jsonEvent)
 
-    LogMsg("id: " + params["id"])
-
+    event := UnmarshalJsonEvent(jsonEvent)
+    event.Type = "HTTP_RESPONSE"
     event.Time = time.Now().String()
     event.Reason += " - " + "Received OK!"
 
-    json.NewEncoder(w).Encode(event)
-    LogMsg("PostEvent: ends")
+    jsonEvent = MarshalJsonEvent(event)
+   	fmt.Fprintf(w, "%s", jsonEvent)
+   	QueueJsonEvent(id, jsonEvent)
 }
 
 /**
  * Posting an event to an HTTP Server with a JSON formatted message.
  *
  */
-func PostToHttpServer(serverEndpoint string, reason string) {
-	LogMsg("PostToHttpServer: " + serverEndpoint)
-	LogMsg("PostToHttpServer: " + reason)
-
-	var event Event
-		
-	event.Time = time.Now().String()
-	event.Reason = reason
-	event.Message = "An event from PI Alarm"
-	event.ID = GetMacAddr()
-
-	jsonBuf, _ := json.Marshal(event)
+func PostToHttpServer(event Event) (response Event) {
+	jsonEvent := MarshalJsonEvent(event)
 
 	serverEndpoint = fmt.Sprintf("%s/event/%s", serverEndpoint, event.ID)
-
-	resp, err := http.Post(serverEndpoint, "application/json", bytes.NewBuffer(jsonBuf))
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		data, _ := ioutil.ReadAll(resp.Body)
-		LogMsg("PostToHttpServer: response: " + string(data))
-	}
-
-	LogMsg("PostToHttpServer: ends")
+	resp, _ := http.Post(serverEndpoint, "application/json", 
+						   bytes.NewBuffer(jsonEvent))
+	LogMsg("Posted: " + string(jsonEvent))
+	
+	jsonEvent, _ = ioutil.ReadAll(resp.Body)
+	response = UnmarshalJsonEvent(jsonEvent)
+	LogMsg("Response: " + string(jsonEvent))
+	return
 }
 
 /**
  */
-func ServeHttpProcessEvent(serverEndpoint string) {
-	LogMsg("ServeHttpProcessEvent: " + serverEndpoint)
+func ServeHttpProcessEvent() {
+	LogMsg("ServeHttpProcessEvent: serving " + serverEndpoint)
     router := mux.NewRouter()
     router.HandleFunc("/event/{id}", PostEvent).Methods("POST")
+    MakeEventStore()
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
 }
 
@@ -89,35 +74,15 @@ func ServeHttpProcessEvent(serverEndpoint string) {
  * at PI_ALARM_SERVER_ENDPOINT.
  *
  */
-func ServeRfRxPostHttp(serverEndpoint string) {
-	LogMsg("ServeRfRxPostHttp: " + serverEndpoint);
-
-  	options := serial.RawOptions
-  	options.BitRate = 9600
-  	p, err := options.Open("/dev/ttyAMA0")
-
-  	if err != nil {
-    	log.Panic(err)
-    	fmt.Println(err)
-  	}
-
-  	defer p.Close()
-  
+func ServeRfRxPostHttp() {
 	for {
-  		buf := make([]byte, 1)
-  		if c, err := p.Read(buf); err == nil {
-			if buf[0] == 'a' {
-				buf = make([]byte, 11)
-				p.Read(buf)
-				PostToHttpServer(serverEndpoint, string(buf))
-			} 
-			LogMsg("ServeRfRxPostHttp: '" + string(buf) + "'")
-  		} else {
-			LogMsg("ServeRfRxPostHttp: ERROR!")
-    		log.Println(c)
-    		log.Panic(err)
-  		}
+		var event Event
+		event.ID = GetMacAddr()
+		event.Type = "RX_EVENT"
+		event.Reason = RfReceive()
+		event.Time = time.Now().String()
+		event.Message = "from sensor"
+		
+		PostToHttpServer(event)
 	}
-
-	LogMsg("ServeRfRxPostHttp: ends");
 }

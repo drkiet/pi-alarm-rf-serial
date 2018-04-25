@@ -12,7 +12,7 @@ import (
  * posting buffer to server
  *
  */
-func PostToUdpServer(serverEndpoint string, reason string) {
+func PostToUdpServer(reason string) {
 	LogMsg("PostToUdpServer: " + serverEndpoint)
 
 	conn, err := net.Dial("udp", serverEndpoint)	
@@ -40,7 +40,7 @@ func PostToUdpServer(serverEndpoint string, reason string) {
 /**
  * Listening to a UDP connection request & then read the message into a buffer
  */
-func ReceiveFromUdpClient(serverEndpoint string) (buf string, address string) {
+func ReceiveFromUdpClient() (buf string, address string) {
 	LogMsg("ReceiveFromUdpClient: " + serverEndpoint)
 	conn, err := net.ListenPacket("udp", serverEndpoint)
 	
@@ -65,14 +65,14 @@ func ReceiveFromUdpClient(serverEndpoint string) (buf string, address string) {
  * In addition, it logs all incoming data in the order it receives
  * into a logfile.
  */
-func ServeUdpProcessEvent(serverEndpoint string) {
+func ServeUdpProcessEvent() {
 	LogMsg ("ServeUdpProcessEvent: " + serverEndpoint)
 
 	for {
-		buf, address := ReceiveFromUdpClient(serverEndpoint)
+		buf, address := ReceiveFromUdpClient()
 		logtext := fmt.Sprintf("received %s from %s", buf, address)
 		LogMsg("ServeUdpProcessEvent: " + logtext)
-		
+
 		var event Event
     	_ = json.Unmarshal([]byte(buf), &event)
 		ProcessSensorEvent(event)
@@ -84,17 +84,17 @@ func ServeUdpProcessEvent(serverEndpoint string) {
  * from a server endpoint, the repeate the same message to the repeater endpoint.
  * 
  */
-func ServeUdpPostUdp(serverEndpoint string, repeaterEndpoing string) {
-	LogMsg ("ServeUdpPostUdp: " + serverEndpoint + " --> " + repeaterEndpoing)
+func ServeUdpPostUdp() {
+	LogMsg ("ServeUdpPostUdp: " + serverEndpoint + " --> " + repeaterEndpoint)
 
 	for {
-		buf, address := ReceiveFromUdpClient(serverEndpoint)
+		buf, address := ReceiveFromUdpClient()
 		var event Event
     	_ = json.Unmarshal([]byte(buf), &event)
-		PostToUdpServer(repeaterEndpoing, event.Reason)
+		PostToUdpServer(event.Reason)
 
 		logtext := fmt.Sprintf("receiving %s from %s and repeating %s to %s", 
-							   buf, address, event.Reason, repeaterEndpoing)
+							   buf, address, event.Reason, repeaterEndpoint)
 		LogMsg("ServeUdpPostUdp: " + logtext)
 	}
 }
@@ -109,17 +109,15 @@ func ServeUdpPostUdp(serverEndpoint string, repeaterEndpoing string) {
  * at PI_ALARM_SERVER_ENDPOINT.
  *
  */
-func ServeRfRxPostUdp(serverEndpoint string) {
+func ServeRfRxPostUdp() {
 	LogMsg("ServeRfRxPostUdp: " + serverEndpoint);
 
 	RfInitialize("/dev/ttyAMA0", 9600)
   
 	for {
 		sensorEvent := RfReceive()
-		PostToUdpServer(serverEndpoint, sensorEvent)
+		PostToUdpServer(sensorEvent)
 		LogMsg("ServeRfRxPostUdp: '" + sensorEvent + "'")
 	}
-
-	LogMsg("ServeRfRxPostUdp: ends");
 }
 

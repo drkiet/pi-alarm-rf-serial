@@ -13,7 +13,6 @@ var port *serial.Port
  * speed: 9600
  */
 func RfInitialize(device string, bitRate int) {
-	LogMsg("RfInitialize: " + device);
 	options := serial.RawOptions
   	options.BitRate = bitRate
 
@@ -24,8 +23,7 @@ func RfInitialize(device string, bitRate int) {
   	}
 
   	port = newPort
-
-  	LogMsg("RfInitialize: ends");
+  	LogMsg("RF Tx/Rx initialized successfully.")
 }
 
 /**
@@ -33,8 +31,6 @@ func RfInitialize(device string, bitRate int) {
  *
  */
 func RfReceive() (sensorEvent string) {
-	LogMsg("RfReceive: " + serverEndpoint);
-
 	buf := make([]byte, 1)
 	if c, err := port.Read(buf); err == nil {
 		if buf[0] == 'a' {
@@ -49,6 +45,5 @@ func RfReceive() (sensorEvent string) {
    		}
 	}
 
-	LogMsg("RfReceive: ends");
 	return
 }
