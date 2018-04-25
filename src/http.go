@@ -41,9 +41,9 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 func PostToHttpServer(event Event) (response Event) {
 	jsonEvent := MarshalJsonEvent(event)
 
-	serverEndpoint = fmt.Sprintf("%s/event/%s", serverEndpoint, event.ID)
-	resp, _ := http.Post(serverEndpoint, "application/json", 
-						   bytes.NewBuffer(jsonEvent))
+	httpEndpoint := fmt.Sprintf("%s/event/%s", serverEndpoint, event.ID)
+	resp, _ := http.Post(httpEndpoint, "application/json", 
+				 	     bytes.NewBuffer(jsonEvent))
 	LogMsg("Posted: " + string(jsonEvent))
 	
 	jsonEvent, _ = ioutil.ReadAll(resp.Body)
@@ -78,7 +78,7 @@ func ServeRfRxPostHttp() {
 	LogMsg("Serving RF Rx & Http posting")
 
 	RfInitialize("/dev/ttyAMA0", 9600)
-	
+
 	for {
 		var event Event
 		event.ID = GetMacAddr()
