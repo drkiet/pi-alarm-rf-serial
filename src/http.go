@@ -75,6 +75,10 @@ func ServeHttpProcessEvent() {
  *
  */
 func ServeRfRxPostHttp() {
+	LogMsg("Serving RF Rx & Http posting")
+
+	RfInitialize("/dev/ttyAMA0", 9600)
+	
 	for {
 		var event Event
 		event.ID = GetMacAddr()
