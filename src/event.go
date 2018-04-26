@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "os"
     "fmt"
+    "github.com/golang-collections/go-datastructures/queue"
 )
 
 type Event struct {
@@ -15,6 +16,7 @@ type Event struct {
 }
 
 var eventFile *os.File
+var q *queue.Queue
 
 func UnmarshalJsonEvent(jsonData []byte) (event Event) {	
     json.Unmarshal(jsonData, &event)
@@ -33,4 +35,8 @@ func QueueJsonEvent(id string, jsonEvent []byte) {
 
 func MakeEventStore() {
 	eventFile = MakeLogFile("./event.log")
+}
+
+func processEvent(id string, event Event) {
+	LogMsg("Event processing completed!")
 }

@@ -25,6 +25,9 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
     QueueJsonEvent(id, jsonEvent)
 
     event := UnmarshalJsonEvent(jsonEvent)
+
+    processEvent(id, event)
+
     event.Type = "HTTP_RESPONSE"
     event.Time = time.Now().String()
     event.Reason += " - " + "Received OK!"
@@ -59,6 +62,7 @@ func ServeHttpProcessEvent() {
     router := mux.NewRouter()
     router.HandleFunc("/event/{id}", PostEvent).Methods("POST")
     MakeEventStore()
+
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
 }
 
