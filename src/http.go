@@ -17,15 +17,14 @@ import (
  * 
  *
  */
-func PostEvent(w http.ResponseWriter, r *http.Request) {
+func postEvent(w http.ResponseWriter, r *http.Request) {
     params := mux.Vars(r)
+
     id := params["id"]
-    
     jsonEvent, _ := ioutil.ReadAll(r.Body)
+
     QueueJsonEvent(id, jsonEvent)
-
     event := UnmarshalJsonEvent(jsonEvent)
-
     processEvent(id, event)
 
     event.Type = "HTTP_RESPONSE"
@@ -34,23 +33,41 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 
     jsonEvent = MarshalJsonEvent(event)
    	fmt.Fprintf(w, "%s", jsonEvent)
+
    	QueueJsonEvent(id, jsonEvent)
+}
+
+func postRegistration(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+    id := params["id"]
+    jsonRegistration, _ := ioutil.ReadAll(r.Body)
+    QueueJsonEvent(id, jsonRegistration)
+
+    var event Event
+    event.ID = id
+    event.Type = "REGISTRATION_EVENT"
+    event.Reason = "REGISTER"
+    event.Time = time.Now().String()
+    event.Message = string(jsonRegistration)
+
+    processEvent(id, event)
 }
 
 /**
  * Posting an event to an HTTP Server with a JSON formatted message.
  *
  */
-func PostToHttpServer(event Event) (response Event) {
+func PostToHttpServer(id string, event Event) (responseEvent Event) {
 	jsonEvent := MarshalJsonEvent(event)
 
-	httpEndpoint := fmt.Sprintf("%s/event/%s", serverEndpoint, event.ID)
+	httpEndpoint := fmt.Sprintf("%s/event/%s", serverEndpoint, id)
 	resp, _ := http.Post(httpEndpoint, "application/json", 
 				 	     bytes.NewBuffer(jsonEvent))
 	LogMsg("Posted: " + string(jsonEvent))
 	
 	jsonEvent, _ = ioutil.ReadAll(resp.Body)
-	response = UnmarshalJsonEvent(jsonEvent)
+	responseEvent = UnmarshalJsonEvent(jsonEvent)
 	LogMsg("Response: " + string(jsonEvent))
 	return
 }
@@ -59,8 +76,11 @@ func PostToHttpServer(event Event) (response Event) {
  */
 func ServeHttpProcessEvent() {
 	LogMsg("ServeHttpProcessEvent: serving " + serverEndpoint)
+    
     router := mux.NewRouter()
-    router.HandleFunc("/event/{id}", PostEvent).Methods("POST")
+    router.HandleFunc("/event/{id}", postEvent).Methods("POST")
+    router.HandleFunc("/registration/{id}", postRegistration).Methods("POST")
+
     MakeEventStore()
 
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
@@ -91,6 +111,6 @@ func ServeRfRxPostHttp() {
 		event.Time = time.Now().String()
 		event.Message = "from sensor"
 		
-		PostToHttpServer(event)
+		PostToHttpServer(event.ID, event)
 	}
 }

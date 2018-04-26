@@ -7,6 +7,8 @@ import (
 
 var serverEndpoint, runningAs, repeaterEndpoint, logFileName string
 
+var maxBufSize int = 1024
+
 
 /**
  * Collecting required parameters via OS environment variables.

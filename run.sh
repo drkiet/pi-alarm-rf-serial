@@ -32,7 +32,8 @@ go install \
 	udp.go \
 	rf_tx_rx.go \
 	sensor.go \
-	event.go
+	event.go \
+	alarm_unit.go
 cd ..
 $GOBIN/pi_alarm_rf_serial
 

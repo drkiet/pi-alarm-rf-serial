@@ -1,61 +1,42 @@
 package main
 	
 import (
-	"encoding/json"
 	"net"
 	"time"
-	"log"
 	"fmt"
+	"strings"
 )
 
 /**
  * posting buffer to server
  *
  */
-func PostToUdpServer(reason string) {
-	LogMsg("PostToUdpServer: " + serverEndpoint)
-
-	conn, err := net.Dial("udp", serverEndpoint)	
-	if err != nil {
-		log.Fatal(err)
-		return 
-	}
+func PostToUdpServer(id string, event Event) {
+	conn, _ := net.Dial("udp", serverEndpoint)	
 
 	defer conn.Close()
-	var event Event
-		
-	event.Time = time.Now().String()
-	event.Reason = reason
-	event.Message = "from PI Alarm"
-	event.ID = GetMacAddr()
 
-	buf, _ := json.Marshal(event)
-	LogMsg("PostToUdpServer: posting: " + string(buf))
+	jsonEvent := MarshalJsonEvent(event)
+	bufstr := id + "; " + string(jsonEvent)
+	bytesWritten, _ := conn.Write([]byte (bufstr))
 
-	json.NewEncoder(conn).Encode(event)
-	LogMsg("PostToUdpServer: ends")
+	LogMsg(fmt.Sprintf("posted %s (%d bytes) via udp: ", 
+					   string(jsonEvent), bytesWritten))
 }
 
 
 /**
  * Listening to a UDP connection request & then read the message into a buffer
  */
-func ReceiveFromUdpClient() (buf string, address string) {
-	LogMsg("ReceiveFromUdpClient: " + serverEndpoint)
-	conn, err := net.ListenPacket("udp", serverEndpoint)
-	
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func ReceiveFromUdpClient() (bufstr string, address string) {
+	conn, _ := net.ListenPacket("udp", serverEndpoint)
 	defer conn.Close()
 
-	buffer := make([] byte, 1024)
-	size, addr, _ := conn.ReadFrom(buffer)
-
-	buf = string(buffer[:size])
+	buf := make([] byte, maxBufSize)
+	_, addr, _ := conn.ReadFrom(buf)
+	bufstr = string(buf)
 	address = addr.String()
-	LogMsg("ReceiveFromUdpClient: ends")
+
 	return
 }
 
@@ -69,13 +50,15 @@ func ServeUdpProcessEvent() {
 	LogMsg ("ServeUdpProcessEvent: " + serverEndpoint)
 
 	for {
-		buf, address := ReceiveFromUdpClient()
-		logtext := fmt.Sprintf("received %s from %s", buf, address)
-		LogMsg("ServeUdpProcessEvent: " + logtext)
+		bufstr, _ := ReceiveFromUdpClient()
 
-		var event Event
-    	_ = json.Unmarshal([]byte(buf), &event)
-		ProcessSensorEvent(event)
+		index := strings.Index(bufstr, ";")
+		id := bufstr[:index-1]
+		jsonEvent := bufstr[index+2:]
+		
+		QueueJsonEvent(id, []byte(jsonEvent))
+    	event := UnmarshalJsonEvent([]byte(jsonEvent))
+    	processEvent(id, event)
 	}
 }
 
@@ -89,13 +72,14 @@ func ServeUdpPostUdp() {
 
 	for {
 		buf, address := ReceiveFromUdpClient()
-		var event Event
-    	_ = json.Unmarshal([]byte(buf), &event)
-		PostToUdpServer(event.Reason)
 
-		logtext := fmt.Sprintf("receiving %s from %s and repeating %s to %s", 
-							   buf, address, event.Reason, repeaterEndpoint)
-		LogMsg("ServeUdpPostUdp: " + logtext)
+		conn, _ := net.Dial("udp", serverEndpoint)	
+		defer conn.Close()
+
+		bytesWritten, _ := conn.Write([]byte (buf))
+
+		LogMsg(fmt.Sprintf("forwarded %s(%d bytes) to %s from %s", 
+						   string(buf), bytesWritten, repeaterEndpoint, address))
 	}
 }
 
@@ -115,9 +99,14 @@ func ServeRfRxPostUdp() {
 	RfInitialize("/dev/ttyAMA0", 9600)
   
 	for {
-		sensorEvent := RfReceive()
-		PostToUdpServer(sensorEvent)
-		LogMsg("ServeRfRxPostUdp: '" + sensorEvent + "'")
+		var event Event
+		event.ID = GetMacAddr()
+		event.Type = "RX_EVENT"
+		event.Reason = RfReceive()
+		event.Time = time.Now().String()
+		event.Message = "from sensor"
+
+		PostToUdpServer(event.ID, event)
 	}
 }
 
