@@ -33,7 +33,8 @@ func ReceiveFromUdpClient() (bufstr string, address string) {
 	defer conn.Close()
 
 	buf := make([] byte, maxBufSize)
-	_, addr, _ := conn.ReadFrom(buf)
+	size, addr, _ := conn.ReadFrom(buf)
+	buf = buf[:size]
 	bufstr = string(buf)
 	address = addr.String()
 
@@ -49,13 +50,15 @@ func ReceiveFromUdpClient() (bufstr string, address string) {
 func ServeUdpProcessEvent() {
 	LogMsg ("ServeUdpProcessEvent: " + serverEndpoint)
 
+    MakeEventStore()
+
 	for {
 		bufstr, _ := ReceiveFromUdpClient()
 
 		index := strings.Index(bufstr, ";")
 		id := bufstr[:index-1]
 		jsonEvent := bufstr[index+2:]
-		
+
 		QueueJsonEvent(id, []byte(jsonEvent))
     	event := UnmarshalJsonEvent([]byte(jsonEvent))
     	processEvent(id, event)
