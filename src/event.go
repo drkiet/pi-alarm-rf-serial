@@ -38,5 +38,13 @@ func MakeEventStore() {
 }
 
 func processEvent(id string, event Event) {
+	if "RX_EVENT" == event.Type {
+		sensor := ProcessSensorMessage(event.Reason)
+		msg, _ := json.Marshal(sensor)
+		LogMsg("Sesnor: " + string(msg))
+	} else {
+		LogMsg("Unprocessed Type: " + event.Type)
+	}
+
 	LogMsg("Event processing completed!")
 }
