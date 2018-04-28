@@ -3,6 +3,7 @@ package main
 import (
   	"log"
  	"os"
+ 	"fmt"
 )
 
 var serverEndpoint, runningAs, repeaterEndpoint, 
@@ -20,6 +21,9 @@ func init() {
 	configFolder = "./config/"
 	logsFolder = "./logs/"
 
+	checkAndMake(configFolder)
+	checkAndMake(logsFolder)
+
 	serverEndpoint = os.Getenv("PI_ALARM_SERVER_ENDPOINT")
 	repeaterEndpoint = os.Getenv("PI_ALARM_REPEATER_ENDPOINT")
 	runningAs = os.Getenv("PI_ALARM_RUNNING_MODE")
@@ -31,6 +35,15 @@ func init() {
 	LogMsg("*** Log File Name: " + logFileName)
 
 	log.SetOutput(MakeLogFile(logsFolder + logFileName))
+}
+
+/**
+ * Make folder if not exist
+ */
+func checkAndMake(folder string) {
+	if _, err := os.Stat(folder); os.IsNotExist(err) {
+		os.Mkdir(folder, os.ModePerm)
+	}
 }
 
 /**
@@ -100,6 +113,6 @@ func main() {
 	} else if "EVENT_HTTP_SERVER" == runningAs {
 		ServeHttpProcessEvent()
 	} else {
-		LogMsg(runningAs + " is an invalid running mode")
+		fmt.Println(runningAs + " is an invalid running mode")
 	}
 }

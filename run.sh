@@ -1,4 +1,3 @@
-#!/usr/bin/bash
 #
 # Required parameters: There are three (3) required parameters are passed
 # 	into the program via OS environment variables. They are provided to 
