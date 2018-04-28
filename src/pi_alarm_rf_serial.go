@@ -5,7 +5,8 @@ import (
  	"os"
 )
 
-var serverEndpoint, runningAs, repeaterEndpoint, logFileName string
+var serverEndpoint, runningAs, repeaterEndpoint, 
+	logFileName, configFolder, logsFolder string
 
 var maxBufSize int = 1024
 
@@ -16,6 +17,9 @@ var maxBufSize int = 1024
  * and other similar environments.
  */
 func init() {
+	configFolder = "./config/"
+	logsFolder = "./logs/"
+
 	serverEndpoint = os.Getenv("PI_ALARM_SERVER_ENDPOINT")
 	repeaterEndpoint = os.Getenv("PI_ALARM_REPEATER_ENDPOINT")
 	runningAs = os.Getenv("PI_ALARM_RUNNING_MODE")
@@ -26,7 +30,7 @@ func init() {
 	LogMsg("*** repeater endpoint: " + repeaterEndpoint)
 	LogMsg("*** Log File Name: " + logFileName)
 
-	log.SetOutput(MakeLogFile(logFileName))
+	log.SetOutput(MakeLogFile(logsFolder + logFileName))
 }
 
 /**
@@ -67,12 +71,17 @@ func init() {
  *    Input: an incoming Event message from UDP. The message is immediately 
  *           forwarded to a destination without any further processing.
  *    Output: same as inputput to a UDP listener
- *       UDP_REPEATER:
+ *       UDP_UDP_REPEATER:
  *       Example:
  *           export PI_ALARM_RUNNING_MODE=UDP_REPEATER
  *           export PI_ALARM_SERVER_ENDPOINT=192.168.1.63:9999
  *           export PI_ALARM_REPEATER_ENDPOINT=172.17.0.2:9999
  *
+ *     	 UDP_HTTP_REPEATER:
+ *       Example:
+ *           export PI_ALARM_RUNNING_MODE=UDP_HTTP_REPEATER
+ *           export PI_ALARM_SERVER_ENDPOINT=192.168.1.63:9999
+ *           export PI_ALARM_REPEATER_ENDPOINT=172.17.0.2:9090
  */
 func main() {
 
@@ -84,8 +93,10 @@ func main() {
 		ServeRfRxPostHttp()
 	} else if "EVENT_UDP_SERVER" == runningAs {
 		ServeUdpProcessEvent()
-	} else if "UDP_REPEATER" == runningAs {
+	} else if "UDP_UDP_REPEATER" == runningAs {
 		ServeUdpPostUdp()
+	} else if "UDP_HTTP_REPEATER" == runningAs {
+		ServeUdpPostHttp()
 	} else if "EVENT_HTTP_SERVER" == runningAs {
 		ServeHttpProcessEvent()
 	} else {

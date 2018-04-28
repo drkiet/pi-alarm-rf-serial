@@ -58,10 +58,14 @@ func postRegistration(w http.ResponseWriter, r *http.Request) {
  * Posting an event to an HTTP Server with a JSON formatted message.
  *
  */
-func PostToHttpServer(id string, event Event) (responseEvent Event) {
+func PostToHttpServer(endpoint, id string, event Event) (responseEvent Event) {
 	jsonEvent := MarshalJsonEvent(event)
 
-	httpEndpoint := fmt.Sprintf("%s/event/%s", serverEndpoint, id)
+	httpEndpoint := fmt.Sprintf("%s/event/%s", endpoint, id)
+    
+    LogMsg("jsonEvent: " + string(jsonEvent))
+    LogMsg("httpEndpoint: " + httpEndpoint)
+
 	resp, _ := http.Post(httpEndpoint, "application/json", 
 				 	     bytes.NewBuffer(jsonEvent))
 	LogMsg("Posted: " + string(jsonEvent))
@@ -111,6 +115,6 @@ func ServeRfRxPostHttp() {
 		event.Time = time.Now().String()
 		event.Message = "from sensor"
 		
-		PostToHttpServer(event.ID, event)
+		PostToHttpServer(serverEndpoint, event.ID, event)
 	}
 }

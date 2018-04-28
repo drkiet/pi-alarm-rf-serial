@@ -1,6 +1,27 @@
 # Introduction
 The purpose of this application is to run as a UDP server that expects incoming messages from a PI that process incoming messages from RF sensors. In other words, the code that runs on the PI listens to the RF message and then forward exactly the messages to a UDP listener acting as a UDP Server. The application runs on the PI acts a UDP Client.
 
+Microservice architecture - in other words, it is small, independently executed and stateless. A single program can run as:
+
+- An RF service: 
+	+ listens to an incoming RF data from the sensors (zones). 
+	+ posts the event to another service via HTTP or UDP protocol.
+	+ should runs on a Raspberry PI with a Wireless Base Station for Raspberry Pi from private eye pi located here `http://privateeypi.com`
+	+ run example:
+		Posting the sensor events to a UDP server
+		```
+		./run.sh RF_RECEIVER_TO_UDP 192.168.1.63:9999 rf-alarm.log
+		```
+		Posting the sensor events to a HTTP server
+		```
+		./run.sh RF_RECEIVER_TO_HTTP http://192.168.1.63:9090 rf-alarm.log
+		```
+
+
+- a service that listens (HTTP or UDP) to an incoming event from an alarm application running on a Raspberry PI, receives it and processes it.
+
+- a service that listens (UDP) incoming event from an alarm application running on a Raspberry PI, receives it and forward to another endpoint via UDP or HTTP
+
 - to run use this shell:
 `
 run.sh
@@ -24,3 +45,5 @@ oc expose deploymentconfigs/pi-alarm-rf-serial --port=8080
 oc expose services/pi-alarm-rf-serial
 
 ```
+http://pi-alarm-rf-serial-rest-example.1d35.starter-us-east-1.openshiftapps.com/
+http://pi-alarm-rf-serial-rest-example.1d35.starter-us-east-1.openshiftapps.com

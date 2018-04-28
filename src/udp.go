@@ -11,8 +11,8 @@ import (
  * posting buffer to server
  *
  */
-func PostToUdpServer(id string, event Event) {
-	conn, _ := net.Dial("udp", serverEndpoint)	
+func PostToUdpServer(endpoint, id string, event Event) {
+	conn, _ := net.Dial("udp", endpoint)	
 
 	defer conn.Close()
 
@@ -28,8 +28,8 @@ func PostToUdpServer(id string, event Event) {
 /**
  * Listening to a UDP connection request & then read the message into a buffer
  */
-func ReceiveFromUdpClient() (bufstr string, address string) {
-	conn, _ := net.ListenPacket("udp", serverEndpoint)
+func ReceiveFromUdpClient(endpoint string) (bufstr string, address string) {
+	conn, _ := net.ListenPacket("udp", endpoint)
 	defer conn.Close()
 
 	buf := make([] byte, maxBufSize)
@@ -53,7 +53,7 @@ func ServeUdpProcessEvent() {
     MakeEventStore()
 
 	for {
-		bufstr, _ := ReceiveFromUdpClient()
+		bufstr, _ := ReceiveFromUdpClient(serverEndpoint)
 
 		index := strings.Index(bufstr, ";")
 		id := bufstr[:index-1]
@@ -74,15 +74,39 @@ func ServeUdpPostUdp() {
 	LogMsg ("ServeUdpPostUdp: " + serverEndpoint + " --> " + repeaterEndpoint)
 
 	for {
-		buf, address := ReceiveFromUdpClient()
+		bufstr, address := ReceiveFromUdpClient(serverEndpoint)
 
-		conn, _ := net.Dial("udp", serverEndpoint)	
+		conn, _ := net.Dial("udp", repeaterEndpoint)	
 		defer conn.Close()
 
-		bytesWritten, _ := conn.Write([]byte (buf))
+		bytesWritten, _ := conn.Write([]byte (bufstr))
 
 		LogMsg(fmt.Sprintf("forwarded %s(%d bytes) to %s from %s", 
-						   string(buf), bytesWritten, repeaterEndpoint, address))
+						   bufstr, bytesWritten, repeaterEndpoint, address))
+	}
+}
+
+/**
+ * This function acts as a forwarder for the UDP protocol to a HTTP protocol 
+ * endpoint. It receives a message.
+ * 
+ */
+func ServeUdpPostHttp() {
+	LogMsg ("ServeUdpPostHttp: " + serverEndpoint + " --> " + repeaterEndpoint)
+
+	for {
+		bufstr, address := ReceiveFromUdpClient(serverEndpoint)
+
+		index := strings.Index(bufstr, ";")
+		id := bufstr[:index-1]
+		jsonEvent := bufstr[index+2:]
+
+		QueueJsonEvent(id, []byte(jsonEvent))
+    	event := UnmarshalJsonEvent([]byte(jsonEvent))
+    	response := PostToHttpServer(repeaterEndpoint, id, event)
+
+		LogMsg(fmt.Sprintf("forwarded %s to %s from %s with response %s", 
+						   bufstr, repeaterEndpoint, address, response))
 	}
 }
 
@@ -109,7 +133,7 @@ func ServeRfRxPostUdp() {
 		event.Time = time.Now().String()
 		event.Message = "from sensor"
 
-		PostToUdpServer(event.ID, event)
+		PostToUdpServer(serverEndpoint, event.ID, event)
 	}
 }
 
