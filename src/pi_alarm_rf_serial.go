@@ -39,7 +39,6 @@ func init() {
 	LogMsg("*** repeater endpoint: " + repeaterEndpoint)
 	LogMsg("*** Log File Name: " + logFileName)
 
-	getAllAlarmUnits()
 	log.SetOutput(MakeLogFile(logsFolder + logFileName))
 }
 
