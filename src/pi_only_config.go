@@ -17,10 +17,13 @@ func loadPiAlarmConfigFromFile() {
 
 	reader := bufio.NewReader(bufio.NewReader(file))
 
-	bytes, _, err := reader.ReadLine()
-	if err != nil {
-		fmt.Println("ReadLine failed: ", err)
-	}
+	for {
+		bytes, _, err := reader.ReadLine()
+		if err != nil {
+			fmt.Println("ReadLine failed: ", err)
+			break
+		}
 
-	fmt.Println("line: ", string(bytes))
+		fmt.Println("line: ", string(bytes))
+	}
 }	
