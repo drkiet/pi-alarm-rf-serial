@@ -106,6 +106,7 @@ func ServeRfRxPostHttp() {
 	LogMsg("Serving RF Rx & Http posting")
 
 	RfInitialize("/dev/ttyAMA0", 9600)
+    loadPiAlarmConfigFromFile()
 
 	for {
 		var event Event
