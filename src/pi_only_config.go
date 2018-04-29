@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"fmt"
+	"io"
 )
 
 const ALARM_UNIT_CONFIG = "alarm_unit.properties"
@@ -20,7 +21,9 @@ func loadPiAlarmConfigFromFile() {
 	for {
 		bytes, _, err := reader.ReadLine()
 		if err != nil {
-			fmt.Println("ReadLine failed: ", err)
+			if err != io.EOF {
+				fmt.Println("ReadLine failed: ", err)
+			}
 			break
 		}
 
