@@ -32,6 +32,11 @@ export PI_ALARM_LOG_FILE_NAME=$3
 #
 export PI_ALARM_REPEATER_ENDPOINT=$4
 
+export PI_ALARM_MONGODB_HOST=172.17.0.6:27017
+export PI_ALARM_MONGODB_NAME=pialarmdb
+export PI_ALARM_MONGODB_USERNAME=pialarmuser
+export PI_ALARM_MONGODB_PASSWORD=Password12341234
+
 cd src
 go install \
 	pi_alarm_rf_serial.go \
@@ -41,6 +46,8 @@ go install \
 	rf_tx_rx.go \
 	sensor.go \
 	event.go \
+	mongo_db.go \
+	pi_only_config.go \
 	alarm_unit.go
 cd ..
 $GOBIN/pi_alarm_rf_serial

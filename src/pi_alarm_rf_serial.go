@@ -29,11 +29,17 @@ func init() {
 	runningAs = os.Getenv("PI_ALARM_RUNNING_MODE")
 	logFileName = os.Getenv("PI_ALARM_LOG_FILE_NAME")
 
+	mongoDbHost = os.Getenv("PI_ALARM_MONGODB_HOST")
+	mongoDbName = os.Getenv("PI_ALARM_MONGODB_NAME")
+	mongoDbUsername = os.Getenv("PI_ALARM_MONGODB_USERNAME")
+	mongoDbPassword = os.Getenv("PI_ALARM_MONGODB_PASSWORD")
+
 	LogMsg("*** running as: " + runningAs)
 	LogMsg("*** server endpoint: " + serverEndpoint)
 	LogMsg("*** repeater endpoint: " + repeaterEndpoint)
 	LogMsg("*** Log File Name: " + logFileName)
 
+	getAllAlarmUnits()
 	log.SetOutput(MakeLogFile(logsFolder + logFileName))
 }
 
