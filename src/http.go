@@ -86,6 +86,8 @@ func ServeHttpProcessEvent() {
     router.HandleFunc("/registration/{id}", postRegistration).Methods("POST")
 
     MakeEventStore()
+    getAllAlarmUnits()
+
 
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
 }

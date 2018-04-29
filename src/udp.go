@@ -51,6 +51,8 @@ func ServeUdpProcessEvent() {
 	LogMsg ("ServeUdpProcessEvent: " + serverEndpoint)
 
     MakeEventStore()
+   	getAllAlarmUnits()
+
 
 	for {
 		bufstr, _ := ReceiveFromUdpClient(serverEndpoint)
