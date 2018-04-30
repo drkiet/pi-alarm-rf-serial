@@ -125,8 +125,8 @@ func ServeUdpPostHttp() {
 func ServeRfRxPostUdp() {
 	LogMsg("ServeRfRxPostUdp: " + serverEndpoint);
 
-	RfInitialize("/dev/ttyAMA0", 9600)
 	loadPiAlarmConfigFromFile()
+	RfInitialize("/dev/ttyAMA0", 9600)
   
 	for {
 		var event Event

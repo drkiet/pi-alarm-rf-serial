@@ -48,6 +48,7 @@ go install \
 	event.go \
 	mongo_db.go \
 	pi_only_config.go \
+	pi_network.go \
 	alarm_unit.go
 cd ..
 $GOBIN/pi_alarm_rf_serial
