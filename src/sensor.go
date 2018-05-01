@@ -40,14 +40,25 @@ func MarshalJsonSensor(sensor Sensor) (jsonData []byte) {
  * - STARTED
  * - AWAKE
  */
-func transformSensorMessage(zones []Zone, buf string) (sensor Sensor) {
+func transformSensorMessage(alarmUnit *AlarmUnit, buf string) (sensor Sensor) {
 	sensor.ID = buf[0:2]
 	sensor.Zone = "*** Unknown sensor ***"
-	for _, zone := range zones {
+	found := false
+
+	for _, zone := range alarmUnit.Zones {
 		if sensor.ID == zone.ID {
 			sensor.Zone = zone.Name
 			break
 		}
+	}
+
+
+	if !found {
+		var zone Zone
+		zone.ID = sensor.ID
+		zone.Name = "*** untracked zone ***"
+
+		addNewZone(alarmUnit, zone)
 	}
 
 	buf = buf[2:]

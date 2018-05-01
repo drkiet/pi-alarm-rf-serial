@@ -96,3 +96,4 @@ func convertYesNoToBool (yesNo string) (trueFalse bool) {
 	}
 	return
 }
+

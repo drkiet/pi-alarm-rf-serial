@@ -66,3 +66,10 @@ func updateAlarmUnitWithSensor(alarmUnit AlarmUnit, sensor Sensor) {
 func updateAlarmUnitWithRegistration(alarmUnit AlarmUnit, updatedAlarmUnit AlarmUnit) {
 	fmt.Println("Processing alarm unit: current: ", updatedAlarmUnit, " ---- updated: ", updatedAlarmUnit)
 }
+
+func addNewZone(alarmUnit *AlarmUnit, zone Zone) {
+	zoneIndex := len(alarmUnit.Zones)
+	alarmUnit.Zones = alarmUnit.Zones[:zoneIndex+1]
+	alarmUnit.Zones [zoneIndex].ID = zone.ID
+	alarmUnit.Zones [zoneIndex].Name = zone.Name
+}

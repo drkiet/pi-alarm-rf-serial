@@ -138,7 +138,7 @@ func serveRfRxPostUdp() {
 // Post the event to the UDP Server
 func postSensorEventToUdpServer(alarmUnit AlarmUnit) {
 	event := makeSensorEvent(GetMacAddr(), TYPE_RX_EVENT, 
-                             RfReceive(alarmUnit), "from sensor")
+                             RfReceive(&alarmUnit), "from sensor")
 	postEventToUdpServer(serverEndpoint, event.ID, event)
 }
 

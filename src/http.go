@@ -109,7 +109,7 @@ func serveRfRxPostHttp() {
 // Post the event to the HTTP Server
 func postSensorEventToHttpServer(alarmUnit AlarmUnit) {
     event := makeSensorEvent(GetMacAddr(), TYPE_RX_EVENT, 
-                             RfReceive(alarmUnit), "from sensor")
+                             RfReceive(&alarmUnit), "from sensor")
     postEventToHttpServer(serverEndpoint, event.ID, event)
 }
 
