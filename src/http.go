@@ -49,13 +49,19 @@ func postEventToHttpServer(endpoint, id string, event Event) (responseEvent Even
     LogMsg("jsonEvent: " + string(jsonEvent))
     LogMsg("httpEndpoint: " + httpEndpoint)
 
-	resp, _ := http.Post(httpEndpoint, "application/json", 
+	resp, err := http.Post(httpEndpoint, "application/json", 
 				 	     bytes.NewBuffer(jsonEvent))
 	LogMsg("Posted: " + string(jsonEvent))
 	
-	jsonEvent, _ = ioutil.ReadAll(resp.Body)
+    if err == nil {
+        fmt.Println("HTTP post error: ", err)
+        return
+    }
+	
+    jsonEvent, _ = ioutil.ReadAll(resp.Body)
 	responseEvent = UnmarshalJsonEvent(jsonEvent)
 	LogMsg("Response: " + string(jsonEvent))
+    
 	return
 }
 
