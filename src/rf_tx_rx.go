@@ -37,9 +37,7 @@ func RfReceive(alarmUnit *AlarmUnit) (sensor Sensor) {
 		if buf[0] == 'a' {
 			buf = make([]byte, 11)
 			port.Read(buf)
-			fmt.Println(alarmUnit)
 			sensor = transformSensorMessage(alarmUnit, string(buf))
-			fmt.Println(alarmUnit)
 			LogMsg(fmt.Sprintf("RfReceive: ", sensor))
 		} else {
 			LogMsg("RfReceive: ERROR!");
