@@ -37,7 +37,7 @@ func loadPiAlarmConfigFromFile() (alarmUnit AlarmUnit) {
 			}
 			break
 		}
-		parseConfig(alarmUnit, string(bytes), &zoneIndex)
+		parseConfig(&alarmUnit, string(bytes), &zoneIndex)
 	}
 
 	fmt.Println("alarmUnit: ", string(MarshalJsonAlarmUnit(alarmUnit)))
@@ -45,7 +45,7 @@ func loadPiAlarmConfigFromFile() (alarmUnit AlarmUnit) {
 	return
 }	
 
-func parseConfig(alarmUnit AlarmUnit, line string, zoneIndex *int) {
+func parseConfig(alarmUnit *AlarmUnit, line string, zoneIndex *int) {
 	tokens := strings.Split(line, ":")
 
 	switch strings.Trim(tokens[0], " ") {
