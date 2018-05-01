@@ -48,6 +48,7 @@ func transformSensorMessage(alarmUnit *AlarmUnit, buf string) (sensor Sensor) {
 	for _, zone := range alarmUnit.Zones {
 		if sensor.ID == zone.ID {
 			sensor.Zone = zone.Name
+			found = true
 			break
 		}
 	}
