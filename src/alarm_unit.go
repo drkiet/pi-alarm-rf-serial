@@ -41,7 +41,7 @@ func MarshalJsonAlarmUnit(alarmUnit AlarmUnit) (jsonData []byte) {
 }
 
 func updateAlarmUnitWithEvent(id string, event Event) {
-	alarmUnit := getOrMakeAlarmUnitFromDataStore(id)
+	alarmUnit := getOrCreateAlarmUnitFromDataStore(id)
 
 	switch event.Type {
 	case RX_EVENT:
