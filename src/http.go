@@ -97,26 +97,26 @@ func serveRfRxPostHttp() {
 	LogMsg("Serving RF Rx & Http posting")
 
 	RfInitialize("/dev/ttyAMA0", 9600)
-    loadPiAlarmConfigFromFile()
-    registerThisAlarmUnitWithHttpServer()
+    alarmUnit := loadPiAlarmConfigFromFile()
+    registerThisAlarmUnitWithHttpServer(alarmUnit)
 
 	for {
-        postSensorEventToHttpServer()
+        postSensorEventToHttpServer(alarmUnit)
 	}
 }
 
 // Make a RX Event Sensor
 // Post the event to the HTTP Server
-func postSensorEventToHttpServer() {
-    event := makeSensorEvent(GetMacAddr(), RX_EVENT, 
-                             RfReceive(), "from sensor")
+func postSensorEventToHttpServer(alarmUnit AlarmUnit) {
+    event := makeSensorEvent(GetMacAddr(), TYPE_RX_EVENT, 
+                             RfReceive(alarmUnit), "from sensor")
     postEventToHttpServer(serverEndpoint, event.ID, event)
 }
 
 // Make a registration event for the alarm unit
 // Post the event to the HTTP Server
-func registerThisAlarmUnitWithHttpServer() {
-    event := makeRegisterEvent(GetMacAddr(), REGISTER_EVENT, 
+func registerThisAlarmUnitWithHttpServer(alarmUnit AlarmUnit) {
+    event := makeRegisterEvent(GetMacAddr(), TYPE_REGISTER_EVENT, 
                                alarmUnit, "from host")
     postEventToHttpServer(serverEndpoint, event.ID, event)
 }

@@ -126,26 +126,26 @@ func serveRfRxPostUdp() {
 
 	loadPiAlarmConfigFromFile()
 	RfInitialize("/dev/ttyAMA0", 9600)
-    loadPiAlarmConfigFromFile()
-    registerThisAlarmUnitWithUdpServer()
+    alarmUnit := loadPiAlarmConfigFromFile()
+    registerThisAlarmUnitWithUdpServer(alarmUnit)
 
 	for {
-        postSensorEventToUdpServer()
+        postSensorEventToUdpServer(alarmUnit)
 	}
 }
 
 // Make an RX Event Sensor
 // Post the event to the UDP Server
-func postSensorEventToUdpServer() {
-	event := makeSensorEvent(GetMacAddr(), RX_EVENT, 
-                             RfReceive(), "from sensor")
+func postSensorEventToUdpServer(alarmUnit AlarmUnit) {
+	event := makeSensorEvent(GetMacAddr(), TYPE_RX_EVENT, 
+                             RfReceive(alarmUnit), "from sensor")
 	postEventToUdpServer(serverEndpoint, event.ID, event)
 }
 
 // Make a registration event for the alarm unit
 // Post the event to the UDP Server
-func registerThisAlarmUnitWithUdpServer() {
-    event := makeRegisterEvent(GetMacAddr(), REGISTER_EVENT, 
+func registerThisAlarmUnitWithUdpServer(alarmUnit AlarmUnit) {
+    event := makeRegisterEvent(GetMacAddr(), TYPE_REGISTER_EVENT, 
                                alarmUnit, "from host")
     postEventToUdpServer(serverEndpoint, event.ID, event)
 }

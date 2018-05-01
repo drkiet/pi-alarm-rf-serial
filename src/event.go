@@ -9,15 +9,14 @@ import (
 )
 
 const (
-	RX_EVENT = "RX_EVENT"
-	REGISTER_EVENT = "REGISTER_EVENT"
-    OWNER_EVENT = "OWNER_EVENT"
+	TYPE_RX_EVENT = "RX_EVENT"
+	TYPE_REGISTER_EVENT = "REGISTER_EVENT"
+    TYPE_OWNER_EVENT = "OWNER_EVENT"
 )
 
 type Event struct {
     ID          string    `json:"id,omitempty"`
     Type        string    `json:"type,omitempty"`
-    Reason      string 	  `json:"reason,omitempty"`
     Alarm       AlarmUnit `json:"alarm,omitempty"`
     SensorMsg   Sensor    `json:"sensor-msg,omitempty"`
     Time 	    string    `json:"time,omitempty"`

@@ -31,13 +31,13 @@ func RfInitialize(device string, bitRate int) {
  * Port must be first initilized. Then, it can receive sensor data/events.
  *
  */
-func RfReceive() (sensor Sensor) {
+func RfReceive(alarmUnit AlarmUnit) (sensor Sensor) {
 	buf := make([]byte, 1)
 	if c, err := port.Read(buf); err == nil {
 		if buf[0] == 'a' {
 			buf = make([]byte, 11)
 			port.Read(buf)
-			sensor = transformSensorMessage(string(buf))
+			sensor = transformSensorMessage(alarmUnit.Zones, string(buf))
 			LogMsg(fmt.Sprintf("RfReceive: ", sensor))
 		} else {
 			LogMsg("RfReceive: ERROR!");

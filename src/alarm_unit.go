@@ -2,6 +2,7 @@ package main
 
 import (
  	"encoding/json"
+ 	"fmt"
 )
 
 type Zone struct {
@@ -28,7 +29,6 @@ type AlarmUnit struct {
 	LastUpdated string 	`json:"last-update,omitempty"`
 }
 
-var alarmUnit AlarmUnit
 
 func UnmarshalJsonAlarmUnit(jsonData []byte) (alarmUnit AlarmUnit) {	
     json.Unmarshal(jsonData, &alarmUnit)
@@ -44,13 +44,13 @@ func updateAlarmUnitWithEvent(id string, event Event) {
 	alarmUnit := getOrCreateAlarmUnitFromDataStore(id)
 
 	switch event.Type {
-	case RX_EVENT:
+	case TYPE_RX_EVENT:
 		updateAlarmUnitWithSensor(alarmUnit, event.SensorMsg)
 
-	case REGISTER_EVENT:
+	case TYPE_REGISTER_EVENT:
 		updateAlarmUnitWithRegistration(alarmUnit, event.Alarm)
 
-	case OWNER_EVENT:
+	case TYPE_OWNER_EVENT:
 
 	default:
 
@@ -60,9 +60,9 @@ func updateAlarmUnitWithEvent(id string, event Event) {
 }
 
 func updateAlarmUnitWithSensor(alarmUnit AlarmUnit, sensor Sensor) {
-
+	fmt.Println("processing sensor: ", sensor)
 }
 
 func updateAlarmUnitWithRegistration(alarmUnit AlarmUnit, updatedAlarmUnit AlarmUnit) {
-
+	fmt.Println("Processing alarm unit: current: ", updatedAlarmUnit, " ---- updated: ", updatedAlarmUnit)
 }

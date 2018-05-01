@@ -40,9 +40,16 @@ func MarshalJsonSensor(sensor Sensor) (jsonData []byte) {
  * - STARTED
  * - AWAKE
  */
-func transformSensorMessage(buf string) (sensor Sensor) {
+func transformSensorMessage(zones []Zone, buf string) (sensor Sensor) {
 	sensor.ID = buf[0:2]
-	sensor.Zone = "to-be-looked-up"
+	sensor.Zone = "*** Unknown sensor ***"
+	for _, zone := range zones {
+		if sensor.ID == zone.ID {
+			sensor.Zone = zone.Name
+			break
+		}
+	}
+
 	buf = buf[2:]
 
 	if strings.HasPrefix(buf, "BUTTON") {

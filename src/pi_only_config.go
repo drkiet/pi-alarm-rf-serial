@@ -16,7 +16,7 @@ const MAX_ZONES = 20
 var network Network
 
 
-func loadPiAlarmConfigFromFile() {
+func loadPiAlarmConfigFromFile() (alarmUnit AlarmUnit) {
 	file, err := os.Open(configFolder + ALARM_UNIT_CONFIG)
 	defer file.Close()
 	if err != nil {
@@ -37,14 +37,15 @@ func loadPiAlarmConfigFromFile() {
 			}
 			break
 		}
-		parseConfig(string(bytes), &zoneIndex)
+		parseConfig(alarmUnit, string(bytes), &zoneIndex)
 	}
 
 	fmt.Println("alarmUnit: ", string(MarshalJsonAlarmUnit(alarmUnit)))
 	fmt.Println("network: ", string(MarshalJsonNetwork(network)))
+	return
 }	
 
-func parseConfig(line string, zoneIndex *int) {
+func parseConfig(alarmUnit AlarmUnit, line string, zoneIndex *int) {
 	tokens := strings.Split(line, ":")
 
 	switch strings.Trim(tokens[0], " ") {
