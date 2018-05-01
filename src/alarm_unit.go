@@ -68,10 +68,10 @@ func updateAlarmUnitWithRegistration(alarmUnit AlarmUnit, updatedAlarmUnit Alarm
 }
 
 func addNewZone(alarmUnit *AlarmUnit, zone Zone) {
-	fmt.Println("Add new zone: ", zone, "---", len(alarmUnit.Zones))
+	fmt.Println(alarmUnit.Zones)
 	zoneIndex := len(alarmUnit.Zones)
 	alarmUnit.Zones = alarmUnit.Zones[:zoneIndex+1]
 	alarmUnit.Zones [zoneIndex].ID = zone.ID
 	alarmUnit.Zones [zoneIndex].Name = zone.Name
-	fmt.Println("Add new zone: Done", zone, "---", len(alarmUnit.Zones))
+	fmt.Println(alarmUnit.Zones)
 }
