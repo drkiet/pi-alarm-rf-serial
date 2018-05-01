@@ -147,5 +147,5 @@ func postSensorEventToUdpServer() {
 func registerThisAlarmUnitWithUdpServer() {
     event := makeRegisterEvent(GetMacAddr(), REGISTER_EVENT, 
                                alarmUnit, "from host")
-    postEventToHttpServer(serverEndpoint, event.ID, event)
+    postEventToUdpServer(serverEndpoint, event.ID, event)
 }
