@@ -137,15 +137,15 @@ func serveRfRxPostUdp() {
 // Make an RX Event Sensor
 // Post the event to the UDP Server
 func postSensorEventToUdpServer() {
-	event := makeEvent(GetMacAddr(), RX_EVENT, 
-                      string(MarshalJsonSensor(RfReceive())), "from sensor")
+	event := makeSensorEvent(GetMacAddr(), RX_EVENT, 
+                             RfReceive(), "from sensor")
 	postEventToUdpServer(serverEndpoint, event.ID, event)
 }
 
 // Make a registration event for the alarm unit
 // Post the event to the UDP Server
 func registerThisAlarmUnitWithUdpServer() {
-    event := makeEvent(GetMacAddr(), REGISTER_EVENT, 
-                       string(MarshalJsonAlarmUnit(alarmUnit)), "from host")
+    event := makeRegisterEvent(GetMacAddr(), REGISTER_EVENT, 
+                               alarmUnit, "from host")
     postEventToHttpServer(serverEndpoint, event.ID, event)
 }

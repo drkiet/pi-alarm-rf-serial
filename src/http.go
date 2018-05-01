@@ -17,7 +17,7 @@ import (
  * 
  *
  */
-func postEvent(w http.ResponseWriter, r *http.Request) {
+func processPostEvent(w http.ResponseWriter, r *http.Request) {
     params := mux.Vars(r)
 
     id := params["id"]
@@ -71,7 +71,7 @@ func serveHttpProcessEvent() {
 	LogMsg("ServeHttpProcessEvent: serving " + serverEndpoint)
     
     router := mux.NewRouter()
-    router.HandleFunc("/event/{id}", postEvent).Methods("POST")
+    router.HandleFunc("/event/{id}", processPostEvent).Methods("POST")
 
     MakeEventStore()
     getAllAlarmUnits()
@@ -108,16 +108,16 @@ func serveRfRxPostHttp() {
 // Make a RX Event Sensor
 // Post the event to the HTTP Server
 func postSensorEventToHttpServer() {
-    event := makeEvent(GetMacAddr(), RX_EVENT, 
-                       string(MarshalJsonSensor(RfReceive())), "from sensor")
+    event := makeSensorEvent(GetMacAddr(), RX_EVENT, 
+                             RfReceive(), "from sensor")
     postEventToHttpServer(serverEndpoint, event.ID, event)
 }
 
 // Make a registration event for the alarm unit
 // Post the event to the HTTP Server
 func registerThisAlarmUnitWithHttpServer() {
-    event := makeEvent(GetMacAddr(), REGISTER_EVENT, 
-                       string(MarshalJsonAlarmUnit(alarmUnit)), "from host")
+    event := makeRegisterEvent(GetMacAddr(), REGISTER_EVENT, 
+                               alarmUnit, "from host")
     postEventToHttpServer(serverEndpoint, event.ID, event)
 }
 

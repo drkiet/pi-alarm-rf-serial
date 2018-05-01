@@ -15,11 +15,13 @@ const (
 )
 
 type Event struct {
-    ID      string  `json:"id,omitempty"`
-    Type    string  `json:"type,omitempty"`
-    Reason  string 	`json:"reason,omitempty"`
-    Time 	string  `json:"time,omitempty"`
-    Message string  `json:"message,omitempty"`
+    ID          string    `json:"id,omitempty"`
+    Type        string    `json:"type,omitempty"`
+    Reason      string 	  `json:"reason,omitempty"`
+    Alarm       AlarmUnit `json:"alarm,omitempty"`
+    SensorMsg   Sensor    `json:"sensor-msg,omitempty"`
+    Time 	    string    `json:"time,omitempty"`
+    Message     string    `json:"message,omitempty"`
 }
 
 var eventFile *os.File
@@ -46,10 +48,19 @@ func MakeEventStore() {
 
 
 
-func makeEvent(id string, eventType string, reason string, msg string) (event Event) {
+func makeSensorEvent(id string, eventType string, sensor Sensor, msg string) (event Event) {
     event.ID = id
     event.Type = eventType
-    event.Reason = reason
+    event.SensorMsg = sensor
+    event.Time = time.Now().String()
+    event.Message = msg
+    return
+}
+
+func makeRegisterEvent(id string, eventType string, alarmUnit AlarmUnit, msg string) (event Event) {
+    event.ID = id
+    event.Type = eventType
+    event.Alarm = alarmUnit
     event.Time = time.Now().String()
     event.Message = msg
     return
