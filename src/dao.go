@@ -3,6 +3,6 @@ package main
 import (
 )
 
-func getOrMakeAlarmUnitFromDataStore(id string) (alarmUnit AlarmUnit) {
+func getOrCreateAlarmUnitFromDataStore(id string) (alarmUnit AlarmUnit) {
 	return
 }

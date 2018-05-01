@@ -46,10 +46,14 @@ func updateAlarmUnitWithEvent(id string, event Event) {
 	switch event.Type {
 	case RX_EVENT:
 		updateAlarmUnitWithSensor(alarmUnit, UnmarshalJsonSensor([]byte(event.Reason)))
+
 	case REGISTER_EVENT:
 		updateAlarmUnitWithRegistration(alarmUnit, UnmarshalJsonAlarmUnit([]byte(event.Reason)))
+
 	case OWNER_EVENT:
+
 	default:
+		
 	}
 	
 	LogMsg("Event processing completed!")

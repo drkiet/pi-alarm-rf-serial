@@ -47,6 +47,7 @@ go install \
 	sensor.go \
 	event.go \
 	mongo_db.go \
+	dao.go \
 	pi_only_config.go \
 	pi_network.go \
 	alarm_unit.go
