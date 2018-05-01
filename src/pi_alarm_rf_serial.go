@@ -106,17 +106,17 @@ func main() {
 	LogMsg("main: running")
 
 	if "RF_RECEIVER_TO_UDP" == runningAs {
-		ServeRfRxPostUdp()
+		serveRfRxPostUdp()
 	} else if "RF_RECEIVER_TO_HTTP" == runningAs {
-		ServeRfRxPostHttp()
+		serveRfRxPostHttp()
 	} else if "EVENT_UDP_SERVER" == runningAs {
-		ServeUdpProcessEvent()
+		serveUdpProcessEvent()
 	} else if "UDP_UDP_REPEATER" == runningAs {
-		ServeUdpPostUdp()
+		serveUdpPostUdp()
 	} else if "UDP_HTTP_REPEATER" == runningAs {
-		ServeUdpPostHttp()
+		serveUdpPostHttp()
 	} else if "EVENT_HTTP_SERVER" == runningAs {
-		ServeHttpProcessEvent()
+		serveHttpProcessEvent()
 	} else {
 		fmt.Println(runningAs + " is an invalid running mode")
 	}

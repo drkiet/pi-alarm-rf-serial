@@ -1,10 +1,17 @@
 package main
 
 import (
+    "github.com/golang-collections/go-datastructures/queue"
     "encoding/json"
     "os"
     "fmt"
-    "github.com/golang-collections/go-datastructures/queue"
+    "time"
+)
+
+const (
+	RX_EVENT = "RX_EVENT"
+	REGISTER_EVENT = "REGISTER_EVENT"
+    OWNER_EVENT = "OWNER_EVENT"
 )
 
 type Event struct {
@@ -34,17 +41,16 @@ func QueueJsonEvent(id string, jsonEvent []byte) {
 }
 
 func MakeEventStore() {
-	eventFile = MakeLogFile("./event.log")
+	eventFile = MakeLogFile(logsFolder + "events.log")
 }
 
-func processEvent(id string, event Event) {
-	if "RX_EVENT" == event.Type {
-		sensor := ProcessSensorMessage(event.Reason)
-		msg, _ := json.Marshal(sensor)
-		LogMsg("Sesnor: " + string(msg))
-	} else {
-		LogMsg("Unprocessed Type: " + event.Type)
-	}
 
-	LogMsg("Event processing completed!")
+
+func makeEvent(id string, eventType string, reason string, msg string) (event Event) {
+    event.ID = id
+    event.Type = eventType
+    event.Reason = reason
+    event.Time = time.Now().String()
+    event.Message = msg
+    return
 }

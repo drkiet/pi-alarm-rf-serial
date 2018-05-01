@@ -21,12 +21,14 @@ type AlarmUnit struct {
 	NotifyEmail bool	`json:"notify-email,omitempty"`
 	NotifyText bool		`json:"notify-text,omitempty"`
 	NotifyPhone bool	`json:"notify-phone,omitempty"`
-
 	Zones []Zone		`json:"zones,omitempty"`
+
 	CurrentState string	`json:"current-state,omitempty"`
 	DesiredState string `json:"desired-state,omitempty"`
 	LastUpdated string 	`json:"last-update,omitempty"`
 }
+
+var alarmUnit AlarmUnit
 
 func UnmarshalJsonAlarmUnit(jsonData []byte) (alarmUnit AlarmUnit) {	
     json.Unmarshal(jsonData, &alarmUnit)
@@ -36,4 +38,27 @@ func UnmarshalJsonAlarmUnit(jsonData []byte) (alarmUnit AlarmUnit) {
 func MarshalJsonAlarmUnit(alarmUnit AlarmUnit) (jsonData []byte) {
 	jsonData, _ = json.Marshal(alarmUnit)
 	return
+}
+
+func updateAlarmUnitWithEvent(id string, event Event) {
+	alarmUnit := getOrMakeAlarmUnitFromDataStore(id)
+
+	switch event.Type {
+	case RX_EVENT:
+		updateAlarmUnitWithSensor(alarmUnit, UnmarshalJsonSensor([]byte(event.Reason)))
+	case REGISTER_EVENT:
+		updateAlarmUnitWithRegistration(alarmUnit, UnmarshalJsonAlarmUnit([]byte(event.Reason)))
+	case OWNER_EVENT:
+	default:
+	}
+	
+	LogMsg("Event processing completed!")
+}
+
+func updateAlarmUnitWithSensor(alarmUnit AlarmUnit, sensor Sensor) {
+
+}
+
+func updateAlarmUnitWithRegistration(alarmUnit AlarmUnit, updatedAlarmUnit AlarmUnit) {
+
 }

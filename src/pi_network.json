@@ -1,0 +1,5 @@
+{
+	"WifiSSID": "wifi network id here",
+	"WifiPSK": "wifi password",
+	"WifiKeyManagement": "wifi key management"
+}

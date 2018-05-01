@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"encoding/json"
 )
 
 type Sensor struct {
@@ -12,8 +13,22 @@ type Sensor struct {
 	Subunit string 	`json:"subunit,omitempty"`
 	Battery string 	`json:"battery,omitempty"`
 }
+
+func UnmarshalJsonSensor(jsonData []byte) (sensor Sensor) {	
+    json.Unmarshal(jsonData, &sensor)
+    return
+}
+
+func MarshalJsonSensor(sensor Sensor) (jsonData []byte) {
+	jsonData, _ = json.Marshal(sensor)
+	return
+}
+
 /**
- * This function processes the buffer receiving from the alarm sensor:
+ * This function processes the buffer receiving from the message from 
+ * a wireless sensor (switch, temperature, humidity, camera, motion, flood etc.)
+ * and turns it into a Sensor object.
+ * 
  * Starts with:
  * - BUTTON
  * - BTN
@@ -25,7 +40,7 @@ type Sensor struct {
  * - STARTED
  * - AWAKE
  */
-func ProcessSensorMessage(buf string) (sensor Sensor) {
+func transformSensorMessage(buf string) (sensor Sensor) {
 	sensor.ID = buf[0:2]
 	sensor.Zone = "to-be-looked-up"
 	buf = buf[2:]
@@ -40,9 +55,4 @@ func ProcessSensorMessage(buf string) (sensor Sensor) {
 		LogMsg("NOT supported feature: " + buf)
 	}
 	return
-}
-
-func ProcessSensorEvent(event Event) {
-	LogMsg ("ProcessSensorEvent: " + event.Reason)
-	LogMsg ("ProcessSensorEvent: ends")
 }

@@ -2,7 +2,6 @@ package main
 	
 import (
 	"net"
-	"time"
 	"fmt"
 	"strings"
 )
@@ -11,7 +10,7 @@ import (
  * posting buffer to server
  *
  */
-func PostToUdpServer(endpoint, id string, event Event) {
+func postEventToUdpServer(endpoint, id string, event Event) {
 	conn, _ := net.Dial("udp", endpoint)	
 
 	defer conn.Close()
@@ -28,7 +27,7 @@ func PostToUdpServer(endpoint, id string, event Event) {
 /**
  * Listening to a UDP connection request & then read the message into a buffer
  */
-func ReceiveFromUdpClient(endpoint string) (bufstr string, address string) {
+func receiveFromUdpClient(endpoint string) (bufstr string, address string) {
 	conn, _ := net.ListenPacket("udp", endpoint)
 	defer conn.Close()
 
@@ -47,7 +46,7 @@ func ReceiveFromUdpClient(endpoint string) (bufstr string, address string) {
  * In addition, it logs all incoming data in the order it receives
  * into a logfile.
  */
-func ServeUdpProcessEvent() {
+func serveUdpProcessEvent() {
 	LogMsg ("ServeUdpProcessEvent: " + serverEndpoint)
 
     MakeEventStore()
@@ -55,7 +54,7 @@ func ServeUdpProcessEvent() {
 
 
 	for {
-		bufstr, _ := ReceiveFromUdpClient(serverEndpoint)
+		bufstr, _ := receiveFromUdpClient(serverEndpoint)
 
 		index := strings.Index(bufstr, ";")
 		id := bufstr[:index-1]
@@ -63,7 +62,7 @@ func ServeUdpProcessEvent() {
 
 		QueueJsonEvent(id, []byte(jsonEvent))
     	event := UnmarshalJsonEvent([]byte(jsonEvent))
-    	processEvent(id, event)
+    	updateAlarmUnitWithEvent(id, event)
 	}
 }
 
@@ -72,11 +71,11 @@ func ServeUdpProcessEvent() {
  * from a server endpoint, the repeate the same message to the repeater endpoint.
  * 
  */
-func ServeUdpPostUdp() {
+func serveUdpPostUdp() {
 	LogMsg ("ServeUdpPostUdp: " + serverEndpoint + " --> " + repeaterEndpoint)
 
 	for {
-		bufstr, address := ReceiveFromUdpClient(serverEndpoint)
+		bufstr, address := receiveFromUdpClient(serverEndpoint)
 
 		conn, _ := net.Dial("udp", repeaterEndpoint)	
 		defer conn.Close()
@@ -93,11 +92,11 @@ func ServeUdpPostUdp() {
  * endpoint. It receives a message.
  * 
  */
-func ServeUdpPostHttp() {
+func serveUdpPostHttp() {
 	LogMsg ("ServeUdpPostHttp: " + serverEndpoint + " --> " + repeaterEndpoint)
 
 	for {
-		bufstr, address := ReceiveFromUdpClient(serverEndpoint)
+		bufstr, address := receiveFromUdpClient(serverEndpoint)
 
 		index := strings.Index(bufstr, ";")
 		id := bufstr[:index-1]
@@ -105,7 +104,7 @@ func ServeUdpPostHttp() {
 
 		QueueJsonEvent(id, []byte(jsonEvent))
     	event := UnmarshalJsonEvent([]byte(jsonEvent))
-    	response := PostToHttpServer(repeaterEndpoint, id, event)
+    	response := postEventToHttpServer(repeaterEndpoint, id, event)
 
 		LogMsg(fmt.Sprintf("forwarded %s to %s from %s with response %s", 
 						   bufstr, repeaterEndpoint, address, response))
@@ -122,21 +121,31 @@ func ServeUdpPostHttp() {
  * at PI_ALARM_SERVER_ENDPOINT.
  *
  */
-func ServeRfRxPostUdp() {
+func serveRfRxPostUdp() {
 	LogMsg("ServeRfRxPostUdp: " + serverEndpoint);
 
 	loadPiAlarmConfigFromFile()
 	RfInitialize("/dev/ttyAMA0", 9600)
-  
-	for {
-		var event Event
-		event.ID = GetMacAddr()
-		event.Type = "RX_EVENT"
-		event.Reason = RfReceive()
-		event.Time = time.Now().String()
-		event.Message = "from sensor"
+    loadPiAlarmConfigFromFile()
+    registerThisAlarmUnitWithUdpServer()
 
-		PostToUdpServer(serverEndpoint, event.ID, event)
+	for {
+        postSensorEventToUdpServer()
 	}
 }
 
+// Make an RX Event Sensor
+// Post the event to the UDP Server
+func postSensorEventToUdpServer() {
+	event := makeEvent(GetMacAddr(), RX_EVENT, 
+                      string(MarshalJsonSensor(RfReceive())), "from sensor")
+	postEventToUdpServer(serverEndpoint, event.ID, event)
+}
+
+// Make a registration event for the alarm unit
+// Post the event to the UDP Server
+func registerThisAlarmUnitWithUdpServer() {
+    event := makeEvent(GetMacAddr(), REGISTER_EVENT, 
+                       string(MarshalJsonAlarmUnit(alarmUnit)), "from host")
+    postEventToHttpServer(serverEndpoint, event.ID, event)
+}

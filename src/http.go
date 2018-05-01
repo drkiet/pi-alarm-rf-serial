@@ -25,11 +25,11 @@ func postEvent(w http.ResponseWriter, r *http.Request) {
 
     QueueJsonEvent(id, jsonEvent)
     event := UnmarshalJsonEvent(jsonEvent)
-    processEvent(id, event)
+    updateAlarmUnitWithEvent(id, event)
 
     event.Type = "HTTP_RESPONSE"
     event.Time = time.Now().String()
-    event.Reason += " - " + "Received OK!"
+    event.Message = "Received OK!"
 
     jsonEvent = MarshalJsonEvent(event)
    	fmt.Fprintf(w, "%s", jsonEvent)
@@ -37,28 +37,11 @@ func postEvent(w http.ResponseWriter, r *http.Request) {
    	QueueJsonEvent(id, jsonEvent)
 }
 
-func postRegistration(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-
-    id := params["id"]
-    jsonRegistration, _ := ioutil.ReadAll(r.Body)
-    QueueJsonEvent(id, jsonRegistration)
-
-    var event Event
-    event.ID = id
-    event.Type = "REGISTRATION_EVENT"
-    event.Reason = "REGISTER"
-    event.Time = time.Now().String()
-    event.Message = string(jsonRegistration)
-
-    processEvent(id, event)
-}
-
 /**
  * Posting an event to an HTTP Server with a JSON formatted message.
  *
  */
-func PostToHttpServer(endpoint, id string, event Event) (responseEvent Event) {
+func postEventToHttpServer(endpoint, id string, event Event) (responseEvent Event) {
 	jsonEvent := MarshalJsonEvent(event)
 
 	httpEndpoint := fmt.Sprintf("%s/event/%s", endpoint, id)
@@ -78,16 +61,14 @@ func PostToHttpServer(endpoint, id string, event Event) (responseEvent Event) {
 
 /**
  */
-func ServeHttpProcessEvent() {
+func serveHttpProcessEvent() {
 	LogMsg("ServeHttpProcessEvent: serving " + serverEndpoint)
     
     router := mux.NewRouter()
     router.HandleFunc("/event/{id}", postEvent).Methods("POST")
-    router.HandleFunc("/registration/{id}", postRegistration).Methods("POST")
 
     MakeEventStore()
     getAllAlarmUnits()
-
 
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
 }
@@ -100,24 +81,37 @@ func ServeHttpProcessEvent() {
  * https://ha.privateeyepi.com/store/index.php?route=product/product&product_id=66
  *
  * Main function:
- * Read data from an RF receiver and retransmit exactly to a UDP listener located
- * at PI_ALARM_SERVER_ENDPOINT.
+ * - load the alarm configuration into the AlarmUnit object. Each host(pi) 
+ *   is represented by a single AlarmUnit.
+ * - register the AlarmUnit with the Server
+ * - receives sensor data, process it and post it to the Server
  *
  */
-func ServeRfRxPostHttp() {
+func serveRfRxPostHttp() {
 	LogMsg("Serving RF Rx & Http posting")
 
 	RfInitialize("/dev/ttyAMA0", 9600)
     loadPiAlarmConfigFromFile()
+    registerThisAlarmUnitWithHttpServer()
 
 	for {
-		var event Event
-		event.ID = GetMacAddr()
-		event.Type = "RX_EVENT"
-		event.Reason = RfReceive()
-		event.Time = time.Now().String()
-		event.Message = "from sensor"
-		
-		PostToHttpServer(serverEndpoint, event.ID, event)
+        postSensorEventToHttpServer()
 	}
 }
+
+// Make a RX Event Sensor
+// Post the event to the HTTP Server
+func postSensorEventToHttpServer() {
+    event := makeEvent(GetMacAddr(), RX_EVENT, 
+                       string(MarshalJsonSensor(RfReceive())), "from sensor")
+    postEventToHttpServer(serverEndpoint, event.ID, event)
+}
+
+// Make a registration event for the alarm unit
+// Post the event to the HTTP Server
+func registerThisAlarmUnitWithHttpServer() {
+    event := makeEvent(GetMacAddr(), REGISTER_EVENT, 
+                       string(MarshalJsonAlarmUnit(alarmUnit)), "from host")
+    postEventToHttpServer(serverEndpoint, event.ID, event)
+}
+

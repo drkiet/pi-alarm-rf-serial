@@ -12,7 +12,7 @@ import (
 const ALARM_UNIT_CONFIG = "alarm_unit.properties"
 const MAX_ZONES = 20
 
-var alarmUnit AlarmUnit
+
 var network Network
 
 
@@ -58,13 +58,13 @@ func parseConfig(line string, zoneIndex *int) {
 		alarmUnit.OwnerCell = strings.Trim(tokens[1], " ")
 
 	case "notify-email":
-		alarmUnit.NotifyEmail = makeYesNoBool(tokens[1])
+		alarmUnit.NotifyEmail = convertYesNoToBool(tokens[1])
 
 	case "notify-text":
-		alarmUnit.NotifyText = makeYesNoBool(tokens[1])
+		alarmUnit.NotifyText = convertYesNoToBool(tokens[1])
 
 	case "notify-phone":
-		alarmUnit.NotifyPhone = makeYesNoBool(tokens[1])
+		alarmUnit.NotifyPhone = convertYesNoToBool(tokens[1])
 
 	case "zone":
 		zoneTokens := strings.Split(strings.Trim(tokens[1], " "), "=")
@@ -87,7 +87,7 @@ func parseConfig(line string, zoneIndex *int) {
 	}	
 }
 
-func makeYesNoBool (yesNo string) (trueFalse bool) {
+func convertYesNoToBool (yesNo string) (trueFalse bool) {
 	if strings.ToLower(strings.Trim(yesNo, " ")) == "yes" {
 		trueFalse = true
 	} else {

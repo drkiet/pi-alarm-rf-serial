@@ -54,3 +54,11 @@ func getAllAlarmUnits() {
 	}
 
 }
+
+func getOrCreateIfNotExistAlarmUnit(id string) (alarmUnit AlarmUnit) {
+	return
+}
+
+func updateOrCreateIfNotExistAlarmUnit(id string, alarmUnit AlarmUnit) {
+	return
+}

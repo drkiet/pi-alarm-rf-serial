@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/mikepb/go-serial"
 	"log"
+	"fmt"
 )
 
 var port *serial.Port
@@ -30,14 +31,14 @@ func RfInitialize(device string, bitRate int) {
  * Port must be first initilized. Then, it can receive sensor data/events.
  *
  */
-func RfReceive() (sensorEvent string) {
+func RfReceive() (sensor Sensor) {
 	buf := make([]byte, 1)
 	if c, err := port.Read(buf); err == nil {
 		if buf[0] == 'a' {
 			buf = make([]byte, 11)
 			port.Read(buf)
-			sensorEvent = string(buf)
-			LogMsg("RfReceive: '" + sensorEvent + "'")
+			sensor = transformSensorMessage(string(buf))
+			LogMsg(fmt.Sprintf("RfReceive: ", sensor))
 		} else {
 			LogMsg("RfReceive: ERROR!");
    			log.Println(c)
