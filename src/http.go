@@ -74,7 +74,7 @@ func serveHttpProcessEvent() {
     router.HandleFunc("/event/{id}", processPostEvent).Methods("POST")
 
     MakeEventStore()
-    getAllAlarmUnits()
+    alarmUnits := getAllAlarmUnitsFromDataStore()
 
     log.Fatal(http.ListenAndServe(serverEndpoint, router))
 }

@@ -3,7 +3,7 @@ package main
 
 import (
 	"gopkg.in/mgo.v2"
-    // "gopkg.in/mgo.v2/bson"
+    "gopkg.in/mgo.v2/bson"
 	"net/url"
 	"fmt"
 	"log"
@@ -36,26 +36,25 @@ func connectMongoDb() {
 }
 
 // Get all alarm units from the collection
-func getAllAlarmUnits() {
+func getAllAlarmUnits() (alarmUnits []AlarmUnit) {
 	connectMongoDb()
 	defer dbClient.Close()
 
 	pialarmDb := dbClient.DB(mongoDbName)
-	alarmunits := pialarmDb.C(ALARM_UNITS_COLLECTION)
-	count, _ := alarmunits.Count()
+	dbAlarmUnits := pialarmDb.C(ALARM_UNITS_COLLECTION)
+	count, _ := dbAlarmUnits.Count()
 
 	LogMsg(fmt.Sprintf("# records: %d", count))
 
-	iter := alarmunits.Find(nil).Iter()
+	dbAlarmUnits.Find(nil).All(&alarmUnits)
 
-	var event Event
-	for iter.Next(&event) {
-		fmt.Println("ID: ", event.ID, "; type: ", event.Type, "; Time: ", event.Time)
-	}
-
+	return
 }
 
-func getOrCreateIfNotExistAlarmUnit(id string) (alarmUnit AlarmUnit) {
+func getAnAlarmUnit(macid string) (alarmUnit *AlarmUnit) {
+	connectMongoDb()
+	defer dbClient.Close()
+	dbClient.DB(mongoDbName).C(ALARM_UNITS_COLLECTION).Find(bson.M{"macid" : macid}).One(alarmUnit)
 	return
 }
 
