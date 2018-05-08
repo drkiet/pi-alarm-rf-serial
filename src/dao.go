@@ -1,8 +1,9 @@
 package main 
 
 import (
-
+	
 )
+
 
 // Search for an alarm unit identified by an ID.
 // If found, return the alarmunit.
@@ -20,7 +21,9 @@ func deleteAnAlarmUnitFromDataStore(id string) (success bool) {
 	return
 }
 
-func updateAnAlarmUnitInDataStore(id string, alarmUnit AlarmUnit) (success bool) {
+func updateAnAlarmUnitInDataStore(id string, alarmUnit AlarmUnit) {
+	// updateAnAlarmUnit(macid, alarmUnit)
+	// success = true
 	return
 }
 

@@ -54,7 +54,14 @@ func getAllAlarmUnits() (alarmUnits []AlarmUnit) {
 func getAnAlarmUnit(macid string) (alarmUnit *AlarmUnit) {
 	connectMongoDb()
 	defer dbClient.Close()
-	dbClient.DB(mongoDbName).C(ALARM_UNITS_COLLECTION).Find(bson.M{"macid" : macid}).One(alarmUnit)
+
+	pialarmDb := dbClient.DB(mongoDbName)
+	dbAlarmUnits := pialarmDb.C(ALARM_UNITS_COLLECTION)
+
+	var all []AlarmUnit
+	dbAlarmUnits.Find(bson.M{"macid": macid}).All(&all)
+
+	alarmUnit = &all[0]
 	return
 }
 
