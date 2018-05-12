@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/mikepb/go-serial"
 	"log"
-	"fmt"
 )
 
 var port *serial.Port
@@ -14,33 +13,34 @@ var port *serial.Port
  * speed: 9600
  */
 func RfInitialize(device string, bitRate int) {
+	log.Println("device:",device,"-bitRate:",bitRate)
+	
 	options := serial.RawOptions
   	options.BitRate = bitRate
 
   	newPort, err := options.Open(device)
 
   	if err != nil {
-    	log.Panic(err)
+    	log.Panic("severe error", err)
   	}
 
   	port = newPort
-  	LogMsg("RF Tx/Rx initialized successfully.")
+  	log.Println("RF Tx/Rx initialized successfully.")
 }
 
 /**
- * Port must be first initilized. Then, it can receive sensor data/events.
+ * receives data from a sensor through rf base station.
  *
  */
-func RfReceive(alarmUnit *AlarmUnit) (sensor Sensor) {
+func RfReceive() (data string) {
 	buf := make([]byte, 1)
 	if c, err := port.Read(buf); err == nil {
 		if buf[0] == 'a' {
 			buf = make([]byte, 11)
 			port.Read(buf)
-			sensor = transformSensorMessage(alarmUnit, string(buf))
-			LogMsg(fmt.Sprintf("RfReceive: ", sensor))
+			log.Println("received: ", (string(buf)))
 		} else {
-			LogMsg("RfReceive: ERROR!");
+			log.Println("RfReceive: ERROR!");
    			log.Println(c)
    			log.Panic(err)
    		}

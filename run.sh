@@ -3,7 +3,7 @@
 # 	into the program via OS environment variables. They are provided to 
 # 	this script in sequence.
 #
-# RUNNING_MODE: This pi_alarm_rf_serial program can run as one of these modes:
+# RUN_MODE: This pi_alarm_rf_serial program can run as one of these modes:
 #
 # 	1) RF_RECEIVER_TO_UDP
 # 	2) RF_RECEIVER_TO_HTTP
@@ -18,7 +18,7 @@
 #
 # FILE_NAME: alarm.log
 #
-export PI_ALARM_RUNNING_MODE=$1
+export RUN_MODE=$1
 export PI_ALARM_SERVER_ENDPOINT=$2
 export PI_ALARM_LOG_FILE_NAME=$3
 
@@ -38,19 +38,11 @@ export PI_ALARM_MONGODB_USERNAME=pialarmuser
 export PI_ALARM_MONGODB_PASSWORD=Password12341234
 
 cd src
-go install \
-	pi_alarm_rf_serial.go \
-	utils.go \
-	http.go \
-	udp.go \
-	rf_tx_rx.go \
-	sensor.go \
+go install alarm_main.go \
 	event.go \
-	mongo_db.go \
-	dao.go \
-	pi_only_config.go \
-	pi_network.go \
-	alarm_unit.go
+	log_util.go \
+	pi_alarm.go \
+	rf_base.go
 cd ..
-$GOBIN/pi_alarm_rf_serial
+$GOBIN/alarm_main
 

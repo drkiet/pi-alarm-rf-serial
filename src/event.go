@@ -1,66 +1,55 @@
 package main
 
 import (
-    "github.com/golang-collections/go-datastructures/queue"
     "encoding/json"
     "os"
-    "fmt"
     "time"
 )
 
-const (
-	TYPE_RX_EVENT = "RX_EVENT"
-	TYPE_REGISTER_EVENT = "REGISTER_EVENT"
-    TYPE_OWNER_EVENT = "OWNER_EVENT"
-)
-
 type Event struct {
-    ID          string    `json:"id,omitempty"`
-    Type        string    `json:"type,omitempty"`
-    Alarm       AlarmUnit `json:"alarm,omitempty"`
-    SensorMsg   Sensor    `json:"sensor-msg,omitempty"`
-    Time 	    string    `json:"time,omitempty"`
-    Message     string    `json:"message,omitempty"`
+    SourceId, Type, Data string
+    Time                 time.Time
 }
 
 var eventFile *os.File
-var q *queue.Queue
 
-func UnmarshalJsonEvent(jsonData []byte) (event Event) {	
+/**
+ * unmarshal an event from a json object to a struct
+ */
+func unmarshalEvent(jsonData []byte) (event Event) {	
     json.Unmarshal(jsonData, &event)
     return
 }
 
-func MarshalJsonEvent(event Event) (jsonData []byte) {
+/**
+ * marshal an event from a struct into a json object
+ */
+func marshalEvent(event Event) (jsonData []byte) {
 	jsonData, _ = json.Marshal(event)
 	return
 }
 
-func QueueJsonEvent(id string, jsonEvent []byte) {
-	line2Write := fmt.Sprintf("id: %s; event:%s\n", id, jsonEvent)
-	eventFile.Write([]byte(line2Write))
-}
-
-func MakeEventStore() {
-	eventFile = MakeLogFile(logsFolder + "events.log")
-}
-
-
-
-func makeSensorEvent(id string, eventType string, sensor Sensor, msg string) (event Event) {
-    event.ID = id
+/**
+ * make event
+ */
+func makeEvent(sourceId string, eventType string, data string) (event *Event) {
+    event.SourceId = sourceId
     event.Type = eventType
-    event.SensorMsg = sensor
-    event.Time = time.Now().String()
-    event.Message = msg
+    event.Data = data
+    event.Time = time.Now()
     return
 }
 
-func makeRegisterEvent(id string, eventType string, alarmUnit AlarmUnit, msg string) (event Event) {
-    event.ID = id
-    event.Type = eventType
-    event.Alarm = alarmUnit
-    event.Time = time.Now().String()
-    event.Message = msg
-    return
+/**
+ * create/open an events log to record an event as it arrives
+ */
+func makeEventLog() {
+	eventFile = makeLogFile(EventLogFile)
+}
+
+/**
+ * append an event json object to event log
+ */
+func recordEvent(event []byte) {
+    eventFile.Write(event)
 }
