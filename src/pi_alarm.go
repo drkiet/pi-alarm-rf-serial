@@ -14,6 +14,8 @@ func managePiAlarm() {
 
 	for {
         data := RfReceive()
-        log.Println("managePiAlarm: ", data
+        log.Println("managePiAlarm: ", data)
+        sensor := makeSensorEvent(data)
+        log.Println(sensor)
 	}
 }

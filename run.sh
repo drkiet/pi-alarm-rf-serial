@@ -42,6 +42,7 @@ go install alarm_main.go \
 	event.go \
 	log_util.go \
 	pi_alarm.go \
+	sensor.go \
 	rf_base.go
 cd ..
 $GOBIN/alarm_main
