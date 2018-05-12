@@ -12,7 +12,7 @@ var port *serial.Port
  * device name: /dev/ttyAMA0
  * speed: 9600
  */
-func RfInitialize(device string, bitRate int) {
+func rfInitialize(device string, bitRate int) {
 	log.Println("device:",device,"-bitRate:",bitRate)
 
 	options := serial.RawOptions
@@ -32,7 +32,7 @@ func RfInitialize(device string, bitRate int) {
  * receives data from a sensor through rf base station.
  *
  */
-func RfReceive() (data string) {
+func rfReceive() (data string) {
 	buf := make([]byte, 1)
 	if c, err := port.Read(buf); err == nil {
 		if buf[0] == 'a' {

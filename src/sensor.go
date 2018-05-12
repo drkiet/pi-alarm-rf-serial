@@ -11,7 +11,7 @@ const (
 	Battery = "BATT"
 )
 type Sensor struct {
-	SensorId, Type, ZoneName, State, Subunit, Batter string 	
+	SensorId, Type, ZoneName, State, Subunit, Battery string 	
 }
 
 func unmarshalSensor(jsonData []byte) (sensor Sensor) {	
