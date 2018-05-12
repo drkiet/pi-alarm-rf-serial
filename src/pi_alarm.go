@@ -13,7 +13,7 @@ func managePiAlarm() {
 	RfInitialize(RFBaseStationSerial, 9600)
 
 	for {
-        buf := RfReceive()
-        log.Println("received: ", string(buf))
+        data := RfReceive()
+        log.Println("managePiAlarm: ", data
 	}
 }

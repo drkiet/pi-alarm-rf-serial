@@ -14,7 +14,7 @@ var port *serial.Port
  */
 func RfInitialize(device string, bitRate int) {
 	log.Println("device:",device,"-bitRate:",bitRate)
-	
+
 	options := serial.RawOptions
   	options.BitRate = bitRate
 
@@ -38,7 +38,8 @@ func RfReceive() (data string) {
 		if buf[0] == 'a' {
 			buf = make([]byte, 11)
 			port.Read(buf)
-			log.Println("received: ", (string(buf)))
+			data = string(buf)
+			log.Println("rfReceive: ", data)
 		} else {
 			log.Println("RfReceive: ERROR!");
    			log.Println(c)
