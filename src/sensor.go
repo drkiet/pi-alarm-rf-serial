@@ -42,7 +42,7 @@ func marshalSensor(sensor Sensor) (jsonData []byte) {
  */
 func makeSensorEvent(data string) (sensor Sensor) {
 	sensor.SensorId = data[0:2]
-	sensor.ZoneName = "*** Unknown sensor ***"
+	sensor.ZoneName = lookupZoneName(sensor.SensorId)
 	
 	data = data[2:]
 

@@ -89,6 +89,17 @@ func managePiAlarm() {
 	}
 }
 
+// Print the content of PiAlarm object
 func printPiAlarm() {
 	fmt.Println(piAlarm)
+}
+
+func lookupZoneName(sensorId string) (zoneName string) {
+	for _, zone := range piAlarm.Zones {
+		if sensorId == zone.SensorId {
+			zoneName = zone.ZoneName
+		}
+	}
+	zoneName = fmt.Sprintf("*** Unknown zone %s ***", sensorId)
+	return
 }
