@@ -75,6 +75,15 @@ func getLastPiAlarmUpdated() (lastUpdated time.Time) {
 	return piAlarm.Updated
 }
 
+func getFormattedZoneStates() (zonesState string) {
+	zonesState = ""
+	for _, zone := range piAlarm.Zones {
+		zonesState += fmt.Sprintf("%s(%s) is %s\n", zone.ZoneName, 
+					  zone.SensorId, zone.State)
+	}
+	return
+}
+
 // Initializing the Pi alarm before operation.
 func piAlarmInit() {
 	piAlarm.MacId = getMacAddr()
