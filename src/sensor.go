@@ -11,7 +11,7 @@ const (
 	Battery = "BATT"
 )
 type Sensor struct {
-	SensorId, Type, ZoneName, State, Subunit, Battery string 	
+	SensorId, Type, ZoneName, State, Subunit, Battery, Data string 	
 }
 
 func unmarshalSensor(jsonData []byte) (sensor Sensor) {	
@@ -41,6 +41,7 @@ func marshalSensor(sensor Sensor) (jsonData []byte) {
  * - AWAKE
  */
 func makeSensorEvent(data string) (sensor Sensor) {
+	sensor.Data = data
 	sensor.SensorId = data[0:2]
 	sensor.ZoneName = lookupZoneName(sensor.SensorId)
 	
