@@ -154,11 +154,9 @@ func parseEmailSettings(line string) {
 	switch strings.Trim(tokens[0], " ") {
 	case "email":
 		routineEmail = (strings.Trim(tokens[1], " "))
-		fmt.Println(fmt.Sprintf("'%s'",routineEmail))
 
 	case "psw":
 		routinePsw = (strings.Trim(tokens[1], " "))
-		fmt.Println(fmt.Sprintf("'%s'",routinePsw))
 
 	case "to":
 		routineTos = routineTos[:toCounter+1]
