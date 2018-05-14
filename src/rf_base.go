@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/mikepb/go-serial"
 	"log"
+	"fmt"
 )
 
 var port *serial.Port
@@ -12,7 +13,7 @@ var port *serial.Port
  * device name: /dev/ttyAMA0
  * speed: 9600
  */
-func rfInitialize(device string, bitRate int) {
+func rfInit(device string, bitRate int) {
 	log.Println("device:",device,"-bitRate:",bitRate)
 
 	options := serial.RawOptions
@@ -48,4 +49,15 @@ func rfReceive() (data string) {
 	}
 
 	return
+}
+
+func rfReceiver(sensorCh chan Sensor) {
+	fmt.Println("\n**** RF Receiver ****\n")
+	for {
+        data := rfReceive()
+        log.Println("managePiAlarm: ", data)
+        sensor := makeSensorEvent(data)
+        log.Println("**** rfReceiver: ", sensor)
+        sensorCh <- sensor
+	}
 }

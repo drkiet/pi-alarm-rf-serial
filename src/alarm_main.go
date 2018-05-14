@@ -50,7 +50,7 @@ func makeDir(folder string) {
 
  */
 func main() {
-	fmt.Println("Alarm starts ...")
+	fmt.Println("\n**** Alarm starts ****\n")
 	if runMode == RunOnPi {
 		managePiAlarm()
 	} 

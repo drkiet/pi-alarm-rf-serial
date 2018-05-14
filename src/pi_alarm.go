@@ -22,13 +22,12 @@ type Zone Sensor
 type PiAlarm struct {
 	MacId, Owner, Email, 
 	Cell, NotifyVia       string
-	Zones                 []Zone
+	Zones                 map[string]*Zone
 	CurState, WantedState string	
 	Updated               time.Time
 }
 
 var piAlarm PiAlarm
-var zoneIndex int = 0
 
 func setOwner(owner string) {
 	piAlarm.Owner = owner
@@ -48,10 +47,10 @@ func setNotifyVia(notifyVia string) {
 
 func addZone (zoneCfg string) {
 	zoneTokens := strings.Split(zoneCfg, "=")
-	piAlarm.Zones = piAlarm.Zones[:zoneIndex+1]
-	piAlarm.Zones [zoneIndex].SensorId = strings.Trim(zoneTokens[0], " ")
-	piAlarm.Zones [zoneIndex].ZoneName = strings.Trim(zoneTokens[1], " ")
-	zoneIndex++
+	zone := new (Zone)
+	zone.SensorId = strings.Trim(zoneTokens[0], " ")
+	zone.ZoneName = strings.Trim(zoneTokens[1], " ")
+	piAlarm.Zones[zone.SensorId] = zone
 }
 
 func setCurState(curState string) {
@@ -67,25 +66,29 @@ func setUpdated(updated time.Time) {
 }
 
 // Initializing the Pi alarm before operation.
-func piAlarmInitialize() {
+func piAlarmInit() {
 	piAlarm.MacId = getMacAddr()
-	piAlarm.Zones = make([]Zone, 0, MaxZones)
+	piAlarm.Zones = make(map[string]*Zone)
 	
 	piAlarm.Updated = time.Now()
 	loadPiAlarmCfg()
-	rfInitialize(RFBaseStationSerial, SerialPortSpeed)
+	rfInit(RFBaseStationSerial, SerialPortSpeed)
+	emailInit()
+
 }
 
 // Managing Pi alarms with RF base station and sensors.
 func managePiAlarm() {
-	log.Println("Managing PI Alarm System")
-	piAlarmInitialize()	
+	log.Println("**** Alarm Manager ****")
+	piAlarmInit()	
+
+	sensorCh := make(chan Sensor)
+	go rfReceiver(sensorCh)
+	go healthMonitor()
 
 	for {
-        data := rfReceive()
-        log.Println("managePiAlarm: ", data)
-        sensor := makeSensorEvent(data)
-        log.Println(sensor)
+       sensor := <- sensorCh
+       log.Println("**** managePiAlarm: ", sensor)
 	}
 }
 
@@ -98,6 +101,7 @@ func lookupZoneName(sensorId string) (zoneName string) {
 	for _, zone := range piAlarm.Zones {
 		if sensorId == zone.SensorId {
 			zoneName = zone.ZoneName
+			return
 		}
 	}
 	zoneName = fmt.Sprintf("*** Unknown zone %s ***", sensorId)

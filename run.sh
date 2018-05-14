@@ -39,9 +39,11 @@ export PI_ALARM_MONGODB_PASSWORD=Password12341234
 
 cd src
 go install alarm_main.go \
+	email.go \
 	ethernet.go \
 	event.go \
 	log_util.go \
+	monitor.go \
 	pi_alarm.go \
 	pi_alarm_cfg.go \
 	pi_network.go \

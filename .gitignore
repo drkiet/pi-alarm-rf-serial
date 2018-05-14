@@ -2,6 +2,7 @@
 pi-alarm-rf-serial
 bin
 pkg
+.private
 *.log
 *.exe
 *.exe~
