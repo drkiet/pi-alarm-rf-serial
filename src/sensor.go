@@ -44,12 +44,20 @@ func makeSensorEvent(data string) (sensor Sensor) {
 	sensor.Data = data
 	sensor.SensorId = data[0:2]
 	sensor.ZoneName = lookupZoneName(sensor.SensorId)
-	
+
 	data = data[2:]
 
 	if isButton(data) {
 		sensor.Subunit = string(data[6:7])
 		sensor.State = string(data[7:9])
+		if sensor.State == "ON" {
+			sensor.State = "CLOSED"
+		} else if sensor.State == "OF" {
+			sensor.State = "OPEN"
+		} else { 
+			sensor.State = "*** UNKNOWN ***"
+		}
+
 		sensor.Type = Button
 	} else if strings.HasPrefix(data, Battery) {
 		sensor.Type = Battery
