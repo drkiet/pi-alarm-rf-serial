@@ -53,6 +53,12 @@ func addZone (zoneCfg string) {
 	piAlarm.Zones[zone.SensorId] = zone
 }
 
+func updateZone(sensor *Sensor) {
+	var zone Zone = Zone(*sensor)
+	piAlarm.Zones[zone.SensorId] = &zone
+	piAlarm.Updated = time.Now()
+}
+
 func setCurState(curState string) {
 	piAlarm.CurState = curState
 }
@@ -63,6 +69,10 @@ func setWantedState(wantedState string) {
 
 func setUpdated(updated time.Time) {
 	piAlarm.Updated = updated
+}
+
+func getLastPiAlarmUpdated() (lastUpdated time.Time) {
+	return piAlarm.Updated
 }
 
 // Initializing the Pi alarm before operation.
@@ -88,6 +98,7 @@ func managePiAlarm() {
 
 	for {
        sensor := <- sensorCh
+       updateZone(&sensor)
        log.Println("**** managePiAlarm: ", sensor)
 	}
 }
