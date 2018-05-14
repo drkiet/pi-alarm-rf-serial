@@ -16,9 +16,11 @@ func healthMonitor() {
 
 		if lastUpdated != getLastPiAlarmUpdated() {
 			lastUpdated = getLastPiAlarmUpdated()	
-			message := getFormattedZoneStates()
-			subject := "state-change"
-			sendEmail(subject, message)
+			zonesState := getFormattedZoneStates()
+			for _, zoneState := range zonesState {
+				subject := zoneState
+				sendEmail(subject, "")
+			}
 		}
 		
 	}

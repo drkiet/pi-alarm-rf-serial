@@ -75,12 +75,15 @@ func getLastPiAlarmUpdated() (lastUpdated time.Time) {
 	return piAlarm.Updated
 }
 
-func getFormattedZoneStates() (zonesState string) {
-	zonesState = ""
+func getFormattedZoneStates() (zonesState []string) {
+	zonesState = make ([]string, len(piAlarm.Zones), len(piAlarm.Zones))
+	var i int = 0
 	for _, zone := range piAlarm.Zones {
-		zonesState += fmt.Sprintf("%s(%s) is %s\n", zone.ZoneName, 
-					  zone.SensorId, zone.State)
+		zonesState[i] = fmt.Sprintf("%s.%s:%s\n", zone.SensorId, zone.ZoneName, 
+					  				zone.State)
+		i++
 	}
+
 	return
 }
 
@@ -91,7 +94,7 @@ func piAlarmInit() {
 	
 	piAlarm.Updated = time.Now()
 	loadPiAlarmCfg()
-	rfInit(RFBaseStationSerial, SerialPortSpeed)
+	// rfInit(RFBaseStationSerial, SerialPortSpeed)
 	emailInit()
 
 }
