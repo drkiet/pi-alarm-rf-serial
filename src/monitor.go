@@ -5,15 +5,52 @@ import (
 	"time"
 )
 
-func notifyViaEmail (subject string, message string) {
+var trackedZones map[string]*Zone
+
+func trackZone(zone *Zone) {
+	trackedZones[zone.SensorId] = zone
+}
+
+func isTrackedZone(zone *Zone) (tracked bool) {
+	if trackedZones[zone.SensorId] == nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+func untrackZone(zone *Zone) {
+	trackedZones[zone.SensorId] = nil
+}
+
+func notifyViaEmail (zone *Zone) {
 	for name, email := range getToList() {
-		sendEmail(email, subject, message + ":" + name)
+		subject := fmt.Sprintf("%s.%s: %s", zone.SensorId, zone.ZoneName, zone.State)
+		sendEmail(email, subject, subject)
+		fmt.Println("Sent email to: ", name, "with subject: ", subject)
+	}
+}
+
+func actNow(zones map[string]*Zone) {
+	for _, zone := range zones {
+		if zone.State == SENSOR_OPEN {
+			trackZone(zone)
+			notifyViaEmail(zone)
+		} else if zone.State == SENSOR_CLOSED {
+			if isTrackedZone(zone) {
+				untrackZone(zone)
+				notifyViaEmail(zone)
+			}
+		} else {
+			fmt.Println(zone.ZoneName, ":", zone.State)
+		}
 	}
 }
 
 func healthMonitor() {
 	fmt.Println("\n**** Health Monitor ****")
 	lastUpdated := getLastPiAlarmUpdated()
+	trackedZones = make(map[string]*Zone)
 
 	// if something change within a sleep of 1 second, act on it.
 	for {
@@ -22,11 +59,7 @@ func healthMonitor() {
 
 		if lastUpdated != getLastPiAlarmUpdated() {
 			lastUpdated = getLastPiAlarmUpdated()	
-			zonesState := getFormattedZoneStates()
-			for _, zoneState := range zonesState {
-				subject := zoneState
-				notifyViaEmail(subject, subject)
-			}
+			actNow(getZones())
 		}
 		
 	}

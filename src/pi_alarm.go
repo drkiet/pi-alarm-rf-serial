@@ -76,6 +76,10 @@ func getLastPiAlarmUpdated() (lastUpdated time.Time) {
 	return piAlarm.Updated
 }
 
+func getZones() (zones map[string]*Zone) {
+	return piAlarm.Zones
+}
+
 func getFormattedZoneStates() (zonesState []string) {
 	zonesState = make ([]string, len(piAlarm.Zones), len(piAlarm.Zones))
 	var i int = 0

@@ -10,6 +10,12 @@ const (
 	Button = "BUTTON"
 	Battery = "BATT"
 )
+
+const (
+	SENSOR_OPEN = "OPEN"
+	SENSOR_CLOSED = "CLOSED"
+	SENSOR_NOSTATE = "NOSTATE"
+)
 type Sensor struct {
 	SensorId, Type, ZoneName, State, Subunit, Battery, Data string 	
 }
@@ -51,11 +57,11 @@ func makeSensorEvent(data string) (sensor Sensor) {
 		sensor.Subunit = string(data[6:7])
 		sensor.State = string(data[7:9])
 		if sensor.State == "ON" {
-			sensor.State = "CLOSED"
+			sensor.State = SENSOR_CLOSED
 		} else if sensor.State == "OF" {
-			sensor.State = "OPEN"
+			sensor.State = SENSOR_OPEN
 		} else { 
-			sensor.State = "*** UNKNOWN ***"
+			sensor.State = SENSOR_NOSTATE
 		}
 
 		sensor.Type = Button
