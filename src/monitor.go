@@ -34,8 +34,10 @@ func notifyViaEmail (zone *Zone) {
 func actNow(zones map[string]*Zone) {
 	for _, zone := range zones {
 		if zone.State == SENSOR_OPEN {
-			trackZone(zone)
-			notifyViaEmail(zone)
+			if !isTrackedZone(zone) {
+				trackZone(zone)
+				notifyViaEmail(zone)
+			}
 		} else if zone.State == SENSOR_CLOSED {
 			if isTrackedZone(zone) {
 				untrackZone(zone)
