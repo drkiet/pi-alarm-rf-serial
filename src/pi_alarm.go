@@ -50,6 +50,7 @@ func addZone (zoneCfg string) {
 	zone := new (Zone)
 	zone.SensorId = strings.Trim(zoneTokens[0], " ")
 	zone.ZoneName = strings.Trim(zoneTokens[1], " ")
+	zone.State = "UNK"
 	piAlarm.Zones[zone.SensorId] = zone
 }
 
@@ -79,7 +80,7 @@ func getFormattedZoneStates() (zonesState []string) {
 	zonesState = make ([]string, len(piAlarm.Zones), len(piAlarm.Zones))
 	var i int = 0
 	for _, zone := range piAlarm.Zones {
-		zonesState[i] = fmt.Sprintf("%s.%s:%s\n", zone.SensorId, zone.ZoneName, 
+		zonesState[i] = fmt.Sprintf("%s.%s : %s\n", zone.SensorId, zone.ZoneName, 
 					  				zone.State)
 		i++
 	}
@@ -94,7 +95,7 @@ func piAlarmInit() {
 	
 	piAlarm.Updated = time.Now()
 	loadPiAlarmCfg()
-	// rfInit(RFBaseStationSerial, SerialPortSpeed)
+	rfInit(RFBaseStationSerial, SerialPortSpeed)
 	emailInit()
 
 }
@@ -127,6 +128,6 @@ func lookupZoneName(sensorId string) (zoneName string) {
 			return
 		}
 	}
-	zoneName = fmt.Sprintf("*** Unknown zone %s ***", sensorId)
+	zoneName = "NONAME"
 	return
 }

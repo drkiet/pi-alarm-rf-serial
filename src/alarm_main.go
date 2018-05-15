@@ -13,7 +13,7 @@ const (
 	LogsFolder = "./logs/"
 	LogFile = "./logs/alarm.log"
 	EventLogFile = "./logs/events.log"
-	PiConfigFile = "./config/pi_alarm.cfg"
+	PiConfigFile = ".private"
 )
 
 const (

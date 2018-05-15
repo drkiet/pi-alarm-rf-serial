@@ -29,8 +29,7 @@ type SmtpServer struct {
 
 var routineEmail string
 var routinePsw string
-var routineTos [] string
-var toCounter int = 0
+var toList map[string]string
 
 // email code is from here: 
 // https://hackernoon.com/golang-sendmail-sending-mail-through-net-smtp-package-5cadbe2670e0 
@@ -55,10 +54,10 @@ func (mail *Mail) BuildMessage() string {
 }
 
 
-func sendEmail(subject string, message string) {
+func sendEmail(to string, subject string, message string) {
 	mail := Mail{}
 	mail.Sender = routineEmail
-	mail.To = []string{routineTos[0]}
+	mail.To = []string{to}
 	mail.Cc = []string{}
 	mail.Bcc = []string{}
 	mail.Subject = subject
@@ -125,9 +124,9 @@ func sendEmail(subject string, message string) {
 
 // Initialize email configuration
 func emailInit() {
-	routineTos = make([]string, 0, 10)
+	toList = make(map[string]string)
 
-	file, err := os.Open(".private")
+	file, err := os.Open(PiConfigFile)
 	defer file.Close()
 	if err != nil {
 		fmt.Println("Need this file for email/text: .private")
@@ -145,8 +144,17 @@ func emailInit() {
 		}
 		parseEmailSettings(string(bytes))
 	}
+	fmt.Println(toList)
 }
 
+func getToList() (map[string]string) {
+	return toList;
+}
+
+func addTo (toCfg string) {
+	toTokens := strings.Split(toCfg, "=")
+	toList[strings.Trim(toTokens[0], " ")] = strings.Trim(toTokens[1], " ")
+}
 
 func parseEmailSettings(line string) {
 	tokens := strings.Split(line, ":")
@@ -159,9 +167,7 @@ func parseEmailSettings(line string) {
 		routinePsw = (strings.Trim(tokens[1], " "))
 
 	case "to":
-		routineTos = routineTos[:toCounter+1]
-		routineTos[toCounter] = (strings.Trim(tokens[1], " "))
-		toCounter++
+		addTo(strings.Trim(tokens[1], " "))
 
 	default:
 	}

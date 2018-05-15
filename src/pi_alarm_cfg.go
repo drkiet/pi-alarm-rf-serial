@@ -9,8 +9,6 @@ import (
 )
 
 
-
-
 func loadPiAlarmCfg() {
 	file, err := os.Open(PiConfigFile)
 	defer file.Close()

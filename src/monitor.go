@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+func notifyViaEmail (subject string, message string) {
+	for name, email := range getToList() {
+		sendEmail(email, subject, message + ":" + name)
+	}
+}
+
 func healthMonitor() {
 	fmt.Println("\n**** Health Monitor ****")
 	lastUpdated := getLastPiAlarmUpdated()
@@ -19,7 +25,7 @@ func healthMonitor() {
 			zonesState := getFormattedZoneStates()
 			for _, zoneState := range zonesState {
 				subject := zoneState
-				sendEmail(subject, "")
+				notifyViaEmail(subject, subject)
 			}
 		}
 		
