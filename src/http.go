@@ -26,6 +26,6 @@ func serveHttp() {
     router := mux.NewRouter()
     router.HandleFunc("/manage", manageAlarm).Methods("GET")
 
-    log.Fatal(http.ListenAndServe("192.168.1.63:9090", router))
+    log.Fatal(http.ListenAndServe(httpEndpoint, router))
 }
 
