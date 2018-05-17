@@ -47,7 +47,14 @@ func makeDir(folder string) {
  * This program can run in multiple modes. Think of it as a small independently 
  * executed application that has a very specific responsibility.
  * 
-
+ * When this program runs 'on_pi', it behaves this way:
+ * - loads cfg from .private file
+ * - listens to RF base station receiver for sensors messages
+ * - monitors the changes in the alarm application
+ * 		+ sends out notification to interested parties (i.e., emails/text)
+ * - listens to http session for the following commands:
+ *		+ modify configuration
+ *		+ 
  */
 func main() {
 	fmt.Println("\n**** Alarm starts ****\n")

@@ -112,6 +112,7 @@ func managePiAlarm() {
 	sensorCh := make(chan Sensor)
 	go rfReceiver(sensorCh)
 	go healthMonitor()
+	go serveHttp()
 
 	for {
        sensor := <- sensorCh

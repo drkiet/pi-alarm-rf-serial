@@ -42,6 +42,7 @@ go install alarm_main.go \
 	email.go \
 	ethernet.go \
 	event.go \
+	http.go \
 	log_util.go \
 	monitor.go \
 	pi_alarm.go \
