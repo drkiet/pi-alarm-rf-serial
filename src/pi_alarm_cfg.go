@@ -64,7 +64,7 @@ func parseConfig(line string) {
 		setWifiKeyManagement(strings.Trim(tokens[1], " "))
 
 	case "server-endpoint":
-		setHttpEndpoint(strings.Trim(tokens[1], " "))
+		setHttpEndpoint(strings.Trim(tokens[1], " ")+":"+strings.Trim(tokens[2], " "))
 
 	default:
 		// ignore everything else.
