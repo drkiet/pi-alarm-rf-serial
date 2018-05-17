@@ -5,12 +5,13 @@ import (
     "net/http"
     "log"
     "fmt"
+    "strings"
 )
 
 var httpEndpoint string
 
 func setHttpEndpoint(serverEndpoint string) {
-	httpEndpoint = serverEndpoint
+	httpEndpoint = strings.Trim(serverEndpoint, " ")
 }
 
 func manageAlarm(w http.ResponseWriter, r *http.Request) {
@@ -20,11 +21,11 @@ func manageAlarm(w http.ResponseWriter, r *http.Request) {
 /**
  */
 func serveHttp() {
-	log.Println("serveHttp: serving " + httpEndpoint)
+	log.Println("serveHttp: serving '" + httpEndpoint + "'")
     
     router := mux.NewRouter()
     router.HandleFunc("/manage", manageAlarm).Methods("GET")
 
-    log.Fatal(http.ListenAndServe(httpEndpoint, router))
+    log.Fatal(http.ListenAndServe("192.168.1.63:9090", router))
 }
 
