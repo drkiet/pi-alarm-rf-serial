@@ -52,9 +52,10 @@ func makeDir(folder string) {
  * - listens to RF base station receiver for sensors messages
  * - monitors the changes in the alarm application
  * 		+ sends out notification to interested parties (i.e., emails/text)
+ *		+ sends out notification to a central webservice
  * - listens to http session for the following commands:
  *		+ modify configuration
- *		+ 
+ *		+ pull the status of the alarm system
  */
 func main() {
 	fmt.Println("\n**** Alarm starts ****\n")
