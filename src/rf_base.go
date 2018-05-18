@@ -34,18 +34,21 @@ func rfInit(device string, bitRate int) {
  *
  */
 func rfReceive() (data string) {
-	buf := make([]byte, 1)
-	if c, err := port.Read(buf); err == nil {
-		if buf[0] == 'a' {
-			buf = make([]byte, 11)
-			port.Read(buf)
-			data = string(buf)
-			log.Println("rfReceive: ", data)
-		} else {
-			log.Println("RfReceive: ERROR!");
-   			log.Println(c)
-   			log.Panic(err)
-   		}
+	for {
+		buf := make([]byte, 1)
+		if c, err := port.Read(buf); err == nil {
+			if buf[0] == 'a' {
+				buf = make([]byte, 11)
+				port.Read(buf)
+				data = string(buf)
+				log.Println("rfReceive: ", data)
+				return
+			} else if err != nil {
+				log.Println("RfReceive: ERROR!");
+   				log.Println(c)
+   				log.Panic(err)
+   			}
+		}
 	}
 
 	return
