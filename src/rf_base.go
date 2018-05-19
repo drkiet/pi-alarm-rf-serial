@@ -64,3 +64,4 @@ func rfReceiver(sensorCh chan Sensor) {
         sensorCh <- sensor
 	}
 }
+

@@ -8,11 +8,11 @@ import (
 var trackedZones map[string]*Zone
 
 func trackZone(zone *Zone) {
-	trackedZones[zone.SensorId] = zone
+	trackedZones[zone.Id] = zone
 }
 
 func isTrackedZone(zone *Zone) (tracked bool) {
-	if trackedZones[zone.SensorId] == nil {
+	if trackedZones[zone.Id] == nil {
 		return false
 	} else {
 		return true
@@ -20,12 +20,12 @@ func isTrackedZone(zone *Zone) (tracked bool) {
 }
 
 func untrackZone(zone *Zone) {
-	trackedZones[zone.SensorId] = nil
+	trackedZones[zone.Id] = nil
 }
 
 func notifyViaEmail (zone *Zone) {
 	for name, email := range getToList() {
-		subject := fmt.Sprintf("%s.%s: %s", zone.SensorId, zone.ZoneName, zone.State)
+		subject := fmt.Sprintf("%s.%s: %s", zone.Id, zone.ZoneName, zone.State)
 		sendEmail(email, subject, subject)
 		fmt.Println("Sent email to: ", name, "with subject: ", subject)
 	}
@@ -44,7 +44,7 @@ func actNow(zones map[string]*Zone) {
 				notifyViaEmail(zone)
 			}
 		} else {
-			fmt.Println(zone.ZoneName, ":", zone.State)
+			// fmt.Println(zone.ZoneName, ":", zone.State)
 		}
 	}
 }
@@ -60,7 +60,8 @@ func healthMonitor() {
 		fmt.Print(".")
 
 		if lastUpdated != getLastPiAlarmUpdated() {
-			lastUpdated = getLastPiAlarmUpdated()	
+			lastUpdated = getLastPiAlarmUpdated()
+			printZones(getZones())
 			actNow(getZones())
 		}
 		

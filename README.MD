@@ -47,3 +47,25 @@ oc expose services/pi-alarm-rf-serial
 ```
 http://pi-alarm-rf-serial-rest-example.1d35.starter-us-east-1.openshiftapps.com/
 http://pi-alarm-rf-serial-rest-example.1d35.starter-us-east-1.openshiftapps.com
+
+## configuring serial port on Raspberry Pi 3
+Use this:
+
+sudo systemctl stop serial-getty@ttyAMA0.service
+sudo systemctl disable serial-getty@ttyAMA0.service
+
+sudo systemctl stop serial-getty@ttyS0.service
+sudo systemctl disable serial-getty@ttyS0.service
+sudo vim /boot/config.txt
+add these:
+
+```
+dtoverlay=pi3-miniuart-bt
+core_freq=250
+enable_uart=1
+```
+
+make sure /boot/cmdline.txt contains this (A SINGLE LINE!!!):
+```
+dwc_otg.lpm_enable=0 console=tty1 root=PARTUUID=201422d0-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+```

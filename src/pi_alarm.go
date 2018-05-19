@@ -9,7 +9,7 @@ import (
 
 const RFBaseStationSerial = "/dev/ttyAMA0" // best to get it from environment var.
 const SerialPortSpeed int = 9600
-const MaxZones = 20
+const MaxZones = 100
 
 const (
 	ViaEmail = "Via Email"
@@ -48,15 +48,15 @@ func setNotifyVia(notifyVia string) {
 func addZone (zoneCfg string) {
 	zoneTokens := strings.Split(zoneCfg, "=")
 	zone := new (Zone)
-	zone.SensorId = strings.Trim(zoneTokens[0], " ")
+	zone.Id = strings.Trim(zoneTokens[0], " ")
 	zone.ZoneName = strings.Trim(zoneTokens[1], " ")
 	zone.State = "UNK"
-	piAlarm.Zones[zone.SensorId] = zone
+	piAlarm.Zones[zone.Id] = zone
 }
 
 func updateZone(sensor *Sensor) {
 	var zone Zone = Zone(*sensor)
-	piAlarm.Zones[zone.SensorId] = &zone
+	piAlarm.Zones[zone.Id] = &zone
 	piAlarm.Updated = time.Now()
 }
 
@@ -84,7 +84,7 @@ func getFormattedZoneStates() (zonesState []string) {
 	zonesState = make ([]string, len(piAlarm.Zones), len(piAlarm.Zones))
 	var i int = 0
 	for _, zone := range piAlarm.Zones {
-		zonesState[i] = fmt.Sprintf("%s.%s : %s\n", zone.SensorId, zone.ZoneName, 
+		zonesState[i] = fmt.Sprintf("%s.%s : %s\n", zone.Id, zone.ZoneName, 
 					  				zone.State)
 		i++
 	}
@@ -99,7 +99,13 @@ func piAlarmInit() {
 	
 	piAlarm.Updated = time.Now()
 	loadPiAlarmCfg()
-	rfInit(RFBaseStationSerial, SerialPortSpeed)
+
+	if runsOnPi() {
+		rfInit(RFBaseStationSerial, SerialPortSpeed)
+	} else {
+		udpInit(getUdpEndpoint())
+	}
+
 	emailInit()
 
 }
@@ -110,9 +116,14 @@ func managePiAlarm() {
 	piAlarmInit()	
 
 	sensorCh := make(chan Sensor)
-	go rfReceiver(sensorCh)
+	if runsOnPi() {
+		go rfReceiver(sensorCh)
+	} else {
+		go udpReceiver(sensorCh)
+	}
+
 	go healthMonitor()
-	go serveHttp()
+	go httpServer(getServerEndpoint())
 
 	for {
        sensor := <- sensorCh
@@ -123,12 +134,39 @@ func managePiAlarm() {
 
 // Print the content of PiAlarm object
 func printPiAlarm() {
-	fmt.Println(piAlarm)
+
+	piAlarmInfo := "\n*** Pi Alarm ***"
+	piAlarmInfo += "\n      MacId: " + piAlarm.MacId
+	piAlarmInfo += "\n      Owner: " + piAlarm.Owner
+	piAlarmInfo += "\n      Email: " + piAlarm.Email
+	piAlarmInfo += "\n       Cell: " + piAlarm.Cell
+	piAlarmInfo += "\n  NotifyVia: " + piAlarm.NotifyVia
+	piAlarmInfo += "\n   CurState: " + piAlarm.CurState
+	piAlarmInfo += "\nWantedState: " + piAlarm.WantedState
+	piAlarmInfo += "\n    Updated: " + piAlarm.Updated.String()
+
+	fmt.Println(piAlarmInfo)
+	printZones(piAlarm.Zones)
 }
 
-func lookupZoneName(sensorId string) (zoneName string) {
+
+func printZones(zones map[string]*Zone) {
+	zonesInfo := fmt.Sprintf("\n*** Zones(%d) ***", len(zones))
+	for _, zone := range zones {
+		zonesInfo += "\n\n     Id: " + zone.Id
+		zonesInfo += "\nZoneName: " + zone.ZoneName
+		zonesInfo += "\n    Type: " + zone.Type
+		zonesInfo += "\n   State: " + zone.State
+		zonesInfo += "\n Subunit: " + zone.Subunit
+		zonesInfo += "\n Battery: " + zone.Battery
+		zonesInfo += "\n    Data: " + zone.Data
+	}
+	fmt.Println(zonesInfo)
+}
+
+func lookupZoneName(id string) (zoneName string) {
 	for _, zone := range piAlarm.Zones {
-		if sensorId == zone.SensorId {
+		if id == zone.Id {
 			zoneName = zone.ZoneName
 			return
 		}

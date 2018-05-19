@@ -6,7 +6,7 @@ import (
  	"fmt"
 )
 
-var runMode, logName string
+var runMode, logName, cfgServerEndpoint, cfgUDPEndpoint string
 
 const (
 	ConfigFolder = "./config/"
@@ -17,7 +17,7 @@ const (
 )
 
 const (
-	RunOnPi = "on_pi"
+	RunsOnPi = "on_pi"
 )
 
 
@@ -32,6 +32,24 @@ func init() {
 	log.SetOutput(makeLogFile(LogFile))
 
 	runMode = os.Getenv("RUN_MODE")
+	cfgServerEndpoint = os.Getenv("SERVER_ENDPOINT")
+	cfgUDPEndpoint = os.Getenv("UDP_ENDPOINT")
+	
+	fmt.Println("run-mode: ", runMode)
+	fmt.Println("server-endpoint: ", cfgServerEndpoint)
+	fmt.Println("udp-endpoint: ", cfgUDPEndpoint)
+}
+
+func runsOnPi() (runsOnPi bool) {
+	return runMode == RunsOnPi
+}
+
+func getServerEndpoint() (serverEndpoint string) {
+	return cfgServerEndpoint
+}
+
+func getUdpEndpoint() (udpEndpoint string) {
+	return cfgUDPEndpoint
 }
 
 /**
@@ -59,9 +77,17 @@ func makeDir(folder string) {
  */
 func main() {
 	fmt.Println("\n**** Alarm starts ****\n")
-	if runMode == RunOnPi {
-		managePiAlarm()
-	} 
+	
+	if runMode != "on_pi" && runMode != "on_udp" {
+		
+		if runMode == "on_kb" {
+			onKeyboard(cfgUDPEndpoint)
+		}
+
+		log.Panic("Must specify correct running mode: on_pi or on_udp")
+	}
+
+	managePiAlarm()
 
 
 	// else if "RF_RECEIVER_TO_HTTP" == runningAs {

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" ng-app="myapp">
+<head>
+	<meta charset="UTF-8">
+	<title>My Alarm System</title>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.3.7/cyborg/bootstrap.min.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+</head>
+<!-- putting this at the top to remove the jarring load -->
+<script src="http://code.angularjs.org/1.2.10/angular.min.js"></script>
+<body ng-controller="MainCtl">
+	<div class="jumbotron">
+		<button class="btn btn-primary pull-right" ng-click="add()">
+			<i class="fa fa-plus"></i> Add zone
+		</button>
+		<h1>My Alarm System</h1>
+	</div>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-3 well">
+				<h3>My Zones</h3>
+				<ul class="nav nav-pills nav-stacked">
+					<li ng-class="{active: z.zone-name == selected.zone-name}" ng-repeat="z in zones">
+						<a id="{{z.zone-name}}" href="" ng-click="get($index)"> <i class="fas fa-door-closed"></i> {{b.title}}</a>
+					</li>
+				</ul>
+			</div>
+			<div class="col-sm-6" ng-show="selected">
+				<h2>{{selected.zone-name}}</h2>
+				<dl class="dl-horizontal">
+					<dt>Author:</dt>
+					<dd>{{selected.zone-name}}</dd>
+				</dl>
+			</div>
+			<div class="col-sm-3" ng-show="selected">
+				<button class="btn btn-primary form-control" ng-click="update(selected.idx)">
+					<i class="fas fa-door-open"></i> Update this book
+				</button>
+				<button class="btn btn-danger form-control" ng-click="remove(selected.idx)">
+					<i class="fas fa-door-closed"></i> Remove this book
+				</button>
+			</div>
+		</div>
+	</div>
+<script src="http://code.angularjs.org/1.2.10/angular-resource.min.js"></script>
+<script>
+	// new dependency: ngResource is included just above
+	var myapp = new angular.module("myapp", ["ngResource"]);
+
+	// inject the $resource dependency here
+	myapp.controller("MainCtl", ["$scope", "$resource", function($scope, $resource){
+		// I designed the backend to play nicely with angularjs so this is all the
+		// setup we need to do all of the ususal operations.
+		var Zone = $resource("/zones/:id", {id: '@id'}, {});
+
+		$scope.selected = null;
+
+		$scope.list = function(idx){
+			// Notice calls to Zone are often given callbacks.
+			Zone.query(function(data){
+				$scope.zones = data;
+				if(idx != undefined) {
+					$scope.selected = $scope.zones[idx];
+					$scope.selected.idx = idx;
+				}
+			}, function(error){
+				alert(error.data);
+			});
+		};
+
+		$scope.list();
+
+		$scope.get = function(idx){
+			// Passing parameters to Zone calls will become arguments if
+			// we haven't defined it as part of the path (we did with id)
+			Zone.get({id: $scope.zones[idx].id}, function(data){
+				$scope.selected = data;
+				$scope.selected.idx = idx;
+			});
+		};
+
+		$scope.add = function() {
+			// I was lazy with the user input.
+			var title = prompt("Enter the book's title.");
+			if(title == null){
+				return;
+			}
+			var author = prompt("Enter the book's author.");
+			if(author == null){
+				return;
+			}
+			// Creating a blank book object means you can still $save
+			var newBook = new Zone();
+			newBook.title = title;
+			newBook.author = author;
+			newBook.$save();
+
+			$scope.list();
+		};
+
+		$scope.update = function(idx) {
+			var zone = $scope.zones[idx];
+			var title = prompt("Enter a new title", zone.title);
+			if(title == null) {
+				return;
+			}
+			var author = prompt("Enter a new author", zone.author);
+			if(author == null) {
+				return;
+			}
+			zone.title = title;
+		 	zone.author = author;
+			// Noticed I never created a new Book()?
+			zone.$save();
+
+			$scope.list(idx);
+		};
+
+		$scope.remove = function(idx){
+			$scope.zones[idx].$delete();
+			$scope.selected = null;
+			$scope.list();
+		};
+	}]);
+</script>
+</body>
+</html>

@@ -4,23 +4,12 @@
 # 	this script in sequence.
 #
 # RUN_MODE: This pi_alarm_rf_serial program can run as one of these modes:
-#
-# 	1) RF_RECEIVER_TO_UDP
-# 	2) RF_RECEIVER_TO_HTTP
-# 	3) EVENT_UDP_SERVER
-# 	4) EVENT_HTTP_SERVER
-# 	5) UDP_REPEATER
-#   6) UDP_HTTP_REPEATER
-# 
-# SERVER_ENDPOINT:
-#	192.168.1.63:9999 (udp)
-#	http://192.168.1.63:9090 (http)
-#
-# FILE_NAME: alarm.log
-#
+# - on_pi: receive sensor data from an on board rf base station
+# - on_udp: receive sensor data from udp endpoint
+
 export RUN_MODE=$1
-export PI_ALARM_SERVER_ENDPOINT=$2
-export PI_ALARM_LOG_FILE_NAME=$3
+export SERVER_ENDPOINT=$2
+export UDP_ENDPOINT=$3
 
 #
 # Optional parameter: the repeater endpoint is required when the program runs 
@@ -49,7 +38,8 @@ go install alarm_main.go \
 	pi_alarm_cfg.go \
 	pi_network.go \
 	rf_base.go \
-	sensor.go 
+	sensor.go \
+	udp.go
 
 cd ..
 $GOBIN/alarm_main

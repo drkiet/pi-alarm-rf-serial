@@ -17,7 +17,13 @@ const (
 	SENSOR_NOSTATE = "NOSTATE"
 )
 type Sensor struct {
-	SensorId, Type, ZoneName, State, Subunit, Battery, Data string 	
+	Id string       `json:"id"`
+	Type string     `json:"type"`
+	ZoneName string `json:"zonename"`
+	State string    `json:"state"`
+	Subunit string  `json:"subunit"`
+	Battery string  `json:"batter"`
+	Data string 	`json:"data"`
 }
 
 func unmarshalSensor(jsonData []byte) (sensor Sensor) {	
@@ -47,9 +53,14 @@ func marshalSensor(sensor Sensor) (jsonData []byte) {
  * - AWAKE
  */
 func makeSensorEvent(data string) (sensor Sensor) {
+	if len(data) < 11 {
+		log.Println("BAD data received", data, "!")
+		return 
+	}
+
 	sensor.Data = data
-	sensor.SensorId = data[0:2]
-	sensor.ZoneName = lookupZoneName(sensor.SensorId)
+	sensor.Id = data[0:2]
+	sensor.ZoneName = lookupZoneName(sensor.Id)
 
 	data = data[2:]
 
