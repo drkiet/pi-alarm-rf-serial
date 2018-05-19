@@ -49,6 +49,8 @@ func rfReceive() (data string) {
 				log.Println("RfReceive: ERROR!");
    				log.Println(c)
    				log.Panic(err)
+   			} else {
+   				fmt.Println("rf error: ", string(buf))
    			}
 		}
 	}
