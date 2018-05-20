@@ -33,6 +33,7 @@ type PiAlarm struct {
 }
 
 var piAlarm PiAlarm
+var passcode string = "1234"
 
 func getSystemInfo() (sysInfo *PiAlarm) {
 	sysInfo = new(PiAlarm)
@@ -58,6 +59,21 @@ func setEmail(email string) {
 
 func setCell(cell string) {
 	piAlarm.Cell = cell
+}
+
+func setPasscode(newPasscode string) {
+	passcode = newPasscode
+}
+
+func getPasscode() (passcode string) {
+	return passcode
+}
+
+func isAuthorized(enteredPasscode string) (authorized bool) {
+	if enteredPasscode == passcode {
+		return true
+	}
+	return false
 }
 
 func setNotifyVia(notifyVia string) {

@@ -51,6 +51,9 @@ func parseConfig(line string) {
 	case "notify-via":
 		setNotifyVia(strings.Trim(tokens[1], " "))
 
+	case "passcode":
+		setPasscode(strings.Trim(tokens[1], " "))
+		
 	case "zone":
 		addZone(strings.Trim(tokens[1], " "))
 

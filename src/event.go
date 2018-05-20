@@ -7,8 +7,10 @@ import (
 )
 
 type Event struct {
-    SourceId, Type, Data string
-    Time                 time.Time
+    SourceId string     `json:"sourceid"`
+    Type     string     `json:"type"`
+    Data     string     `json:"data"`
+    Time     time.Time  `json:"time"`
 }
 
 var eventFile *os.File

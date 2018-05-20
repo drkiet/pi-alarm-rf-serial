@@ -91,10 +91,8 @@
 			update: {method: 'PUT'}
 		});
 
-		var Arm = $resource("/arm", {}, {
-			arm: {method: 'POST'},
-			perimeter: {method: 'PUT'},
-			disarm: {method: 'DELETE'}
+		var Command = $resource("/cmd", {}, {
+			cmd: {method: 'POST'},
 		});
 
 		var SysInfo = $resource("/sysinfo", {}, {})
@@ -133,6 +131,7 @@
 		};
 
 		$scope.selected = null;
+		$scope.passcode = null;
 		$scope.list();
 		$scope.getsysinfo();
 
@@ -193,28 +192,56 @@
 		};
 
 		$scope.arm = function() {
-			theArm = new Arm();
-			theArm.passcode = prompt("Enter passcode");
+			cmd = new Command();
+			cmd.passcode = enterPasscode();
+			cmd.exec = "ARM"
 
-			theArm.$arm();
+			cmd.$cmd().then(function (response) {
+				process(response);
+			});
 			$scope.list();
 			$scope.getsysinfo();
 		}
 
 		$scope.disarm = function() {
-			theArm = new Arm();
-			theArm.passcode = prompt("Enter passcode");
-			theArm.$disarm();
+			cmd = new Command();
+			cmd.passcode = enterPasscode();
+			cmd.exec = "DISARM"
+
+			cmd.$cmd().then(function (response) {
+				process(response);
+			});
 			$scope.list();
 			$scope.getsysinfo();		
 		}
 
 		$scope.perimeter = function() {
-			theArm = new Arm();
-			theArm.passcode = prompt("Enter passcode");
-			theArm.$perimeter();
+			cmd = new Command();
+			cmd.passcode = enterPasscode();
+			cmd.exec = "PERIMETER"
+			cmd.result = ""
+
+			retval = cmd.$cmd().then(function (response) {
+				process(response);
+			});
+			
 			$scope.list();
 			$scope.getsysinfo();
+		}
+
+		function enterPasscode() {
+			if ($scope.passcode == null) {
+				$scope.passcode = prompt("Enter passcode");
+			}
+			return $scope.passcode;
+		}
+
+		function process(response) {
+			if (response.result == "UNAUTH") {
+				console.log ("Unauthorized!");
+				alert("Unauthorized!");
+				$scope.passcode = null;
+			} 
 		}
 
 	}]);
