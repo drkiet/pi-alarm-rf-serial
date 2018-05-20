@@ -11,10 +11,19 @@
 <script src="http://code.angularjs.org/1.2.10/angular.min.js"></script>
 <body ng-controller="MainCtl">
 	<div class="jumbotron">
-		<button class="btn btn-primary pull-right" ng-click="add()">
-			<i class="fas fa-lock"></i> ARM
+
+		<button class="btn btn-primary pull-right" ng-click="disarm()">
+			<i class="fas fa-lock-open"></i> Disarm
 		</button>
-		<h1>My Alarm System</h1>
+		<button class="btn btn-primary pull-right" ng-click="arm()">
+			<i class="fas fa-lock"></i> Arm
+		</button>
+
+		<button class="btn btn-primary pull-right" ng-click="perimeter()">
+			<i class="far fa-square"></i> Perimeter
+		</button>
+		
+		<h3>My Alarm System</h3>
 	</div>
 	<div class="container-fluid">
 		<div class="row">
@@ -31,12 +40,14 @@
 			<div class="col-sm-6" ng-show="selected">
 				<h2>{{selected.zonename}}</h2>
 				<dl class="dl-horizontal">
-					<dt>Zone-Id:</dt>
+					<dt>Id:</dt>
 					<dd>{{selected.id}}</dd>
-				</dl>
-				<dl class="dl-horizontal">
-					<dt>Zone-State:</dt>
+					<dt>State:</dt>
 					<dd>{{selected.state}}</dd>
+					<dt>Raw-Data:</dt>
+					<dd>{{selected.thedata}}</dd>
+					<dt>Updated:</dt>
+					<dd>{{selected.updatedby}}</dd>
 				</dl>
 
 			</div>
@@ -62,7 +73,13 @@
 	myapp.controller("MainCtl", ["$scope", "$resource", function($scope, $resource){
 		// I designed the backend to play nicely with angularjs so this is all the
 		// setup we need to do all of the ususal operations.
-		var Zone = $resource("/zones/:id", {id: '@id'}, {});
+		var Zone = $resource("/zones/:id", {id: '@id'}, {
+			update: {method: 'PUT'}
+		});
+		var Arm = $resource("/arm", {}, {
+			arm: {method: 'POST'},
+			disarm: {method: 'DELETE'}
+		});
 
 		$scope.selected = null;
 
@@ -84,7 +101,7 @@
 		setInterval(() => $scope.list(), 15000);
 
 		$scope.get = function(idx){
-			// Passing parameters to Book calls will become arguments if
+			// Passing parameters to Zone calls will become arguments if
 			// we haven't defined it as part of the path (we did with id)
 			Zone.get({id: $scope.zones[idx].id}, function(data){
 				$scope.selected = data;
@@ -94,46 +111,57 @@
 
 		$scope.add = function() {
 			// I was lazy with the user input.
-			var title = prompt("Enter the book's title.");
-			if(title == null){
+			id = null
+			var theId = prompt("Enter the zone id.");
+			if(theId == null){
 				return;
 			}
-			var author = prompt("Enter the book's author.");
-			if(author == null){
+			var zonename = prompt("Enter the zone name.");
+			if(zonename == null){
 				return;
 			}
-			// Creating a blank book object means you can still $save
-			var newBook = new Book();
-			newBook.title = title;
-			newBook.author = author;
-			newBook.$save();
+			// Creating a blank zone object means you can still $save
+			var newZone = new Zone();
+			newZone.id = theId;
+			newZone.zonename = zonename;
+			newZone.$save();
 
 			$scope.list();
 		};
 
 		$scope.update = function(idx) {
-			var book = $scope.books[idx];
-			var title = prompt("Enter a new title", book.title);
-			if(title == null) {
+			var zone = $scope.zones[idx];
+			var id = prompt("Enter a new id", zone.id);
+			if(id == null) {
 				return;
 			}
-			var author = prompt("Enter a new author", book.author);
-			if(author == null) {
+			var zonename = prompt("Enter a new zonename", zone.zonename);
+			if(zonename == null) {
 				return;
 			}
-			book.title = title;
-			book.author = author;
-			// Noticed I never created a new Book()?
-			book.$save();
+			zone.id = id;
+			zone.zonename = zonename;
+			// Noticed I never created a new Zone()?
+			zone.$update();
 
 			$scope.list(idx);
 		};
 
 		$scope.remove = function(idx){
-			$scope.books[idx].$delete();
+			$scope.zones[idx].$delete();
 			$scope.selected = null;
 			$scope.list();
 		};
+
+		$scope.arm = function() {
+			theArm = new Arm()
+			theArm.$arm()
+		}
+
+		$scope.disarm = function() {
+			theArm = new Arm()
+			theArm.$disarm()
+		}
 
 	}]);
 </script>

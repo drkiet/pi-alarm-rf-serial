@@ -9,6 +9,8 @@ import (
     "fmt"
     "sort"
     "encoding/json"
+    "io/ioutil"
+    "errors"
 )
 
 // error response contains everything we need to use http.Error
@@ -59,7 +61,7 @@ func (fn handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     log.Printf("%s %s %s %d", r.RemoteAddr, r.Method, r.URL, 200)
 }
 
-func listZones(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+func listZonesHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
     zones := make([]Zone, 0)
 
     var ids [] string
@@ -74,12 +76,15 @@ func listZones(w http.ResponseWriter, r *http.Request) (interface{}, *handlerErr
         theZone.Id = zone.Id
         theZone.ZoneName = zone.ZoneName
         theZone.State    = zone.State
+        theZone.Data     = zone.Data
+        theZone.Updated  = zone.Updated
         zones = append(zones, theZone)
     }
     return zones, nil
 }
 
-func getZone(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+
+func getZoneHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
     id := mux.Vars(r)["id"]
     for _, zone := range getZones() {
         if id == zone.Id {
@@ -87,12 +92,81 @@ func getZone(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError
             theZone.Id = zone.Id
             theZone.ZoneName = zone.ZoneName
             theZone.State    = zone.State
+            theZone.Data     = zone.Data
+            theZone.Updated  = zone.Updated
             return theZone, nil
         }
     }
     return "NOTFOUND", nil
 }
 
+func removeZoneHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    id := mux.Vars(r)["id"]
+    zone := getZoneById(id)
+
+    if zone == nil {
+        return Zone{}, &handlerError{errors.New("Zone not exists!"), "Zone not exists", http.StatusBadRequest}
+    }
+
+    removeZone(id)
+
+    return "Successfully removed " + id + "!", nil
+}
+
+func updateZoneHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    id := mux.Vars(r)["id"]
+    zone := getZoneById(id)
+
+    if zone == nil {
+        return Zone{}, &handlerError{errors.New("Zone not exists"), "Zone not exists", http.StatusBadRequest}
+    }
+
+    payload, _ := parseZoneRequest(r)
+    updateZoneName(payload.Id, payload.ZoneName)
+    zone = getZoneById(id)
+
+    return zone, nil
+}
+
+func addZoneHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    fmt.Println("adding zone ...")
+    id := mux.Vars(r)["id"]
+    zone := getZoneById(id)
+
+    fmt.Println(zone)
+    if zone != nil {
+        return Zone{}, &handlerError{errors.New("Zone exists"), "Zone exists", http.StatusBadRequest}
+    }
+
+    payload, _ := parseZoneRequest(r)
+    addZone(payload.Id + "=" + payload.ZoneName)
+    return payload, nil
+}
+
+func parseZoneRequest(r *http.Request) (Zone, *handlerError) {
+    // the zone payload is in the request body
+    data, e := ioutil.ReadAll(r.Body)
+    if e != nil {
+        return Zone{}, &handlerError{e, "Could not read request", http.StatusBadRequest}
+    }
+
+    // turn the request body (JSON) into a zone object
+    var payload Zone
+    e = json.Unmarshal(data, &payload)
+    if e != nil {
+        return Zone{}, &handlerError{e, "Could not parse JSON", http.StatusBadRequest}
+    }
+
+    return payload, nil
+}
+
+func armHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    return "ARMED!", nil
+}    
+
+func disarmHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    return "DISARMED!", nil
+}   
 /**
  */
 func httpServer(serverEndpoint string) {
@@ -108,11 +182,15 @@ func httpServer(serverEndpoint string) {
 
     router := mux.NewRouter()
     router.Handle("/", http.RedirectHandler("/static/", 302))
-    router.Handle("/zones", handler(listZones)).Methods("GET")
-    // router.Handle("/zones", handler(addZone)).Methods("POST")
-    router.Handle("/zones/{id}", handler(getZone)).Methods("GET")
-    // router.Handle("/zones/{id}", handler(updateZone)).Methods("POST")
-    // router.Handle("/zones/{id}", handler(removeZone)).Methods("DELETE")
+    router.Handle("/zones", handler(listZonesHandler)).Methods("GET")
+    router.Handle("/zones/{id}", handler(addZoneHandler)).Methods("POST")
+    router.Handle("/zones/{id}", handler(getZoneHandler)).Methods("GET")
+    router.Handle("/zones/{id}", handler(updateZoneHandler)).Methods("PUT")
+    router.Handle("/zones/{id}", handler(removeZoneHandler)).Methods("DELETE")
+
+    router.Handle("/arm", handler(armHandler)).Methods("POST")
+    router.Handle("/arm", handler(disarmHandler)).Methods("DELETE")
+
     router.PathPrefix("/static/").Handler(http.StripPrefix("/static", fileHandler))
     http.Handle("/", router)
 

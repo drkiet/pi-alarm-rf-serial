@@ -37,7 +37,6 @@ func rfReceive() (data string) {
 	for {
 		buf := make([]byte, 1)
 		if c, err := port.Read(buf); err == nil {
-			fmt.Println("buf:", string(buf))
 			if buf[0] == 'a' {
 				buf = make([]byte, 11)
 				port.Read(buf)
@@ -49,9 +48,7 @@ func rfReceive() (data string) {
 				log.Println("RfReceive: ERROR!");
    				log.Println(c)
    				log.Panic(err)
-   			} else {
-   				fmt.Println("rf error: ", string(buf))
-   			}
+   			} 
 		}
 	}
 

@@ -27,7 +27,7 @@ func notifyViaEmail (zone *Zone) {
 	for name, email := range getToList() {
 		subject := fmt.Sprintf("%s.%s: %s", zone.Id, zone.ZoneName, zone.State)
 		sendEmail(email, subject, subject)
-		fmt.Println("Sent email to: ", name, "with subject: ", subject)
+		fmt.Println("\nSent email to: ", name, "with subject: ", subject)
 	}
 }
 
@@ -61,7 +61,7 @@ func healthMonitor() {
 
 		if lastUpdated != getLastPiAlarmUpdated() {
 			lastUpdated = getLastPiAlarmUpdated()
-			printZones(getZones())
+			// printZones(getZones())
 			actNow(getZones())
 		}
 		

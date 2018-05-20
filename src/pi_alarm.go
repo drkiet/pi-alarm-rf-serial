@@ -54,10 +54,39 @@ func addZone (zoneCfg string) {
 	piAlarm.Zones[zone.Id] = zone
 }
 
+func updateZoneName(id string, zoneName string) {
+	piAlarm.Zones[id].ZoneName = zoneName
+}
+
+func removeZone(id string) {
+	delete(piAlarm.Zones, id)
+}
+
 func updateZone(sensor *Sensor) {
 	var zone Zone = Zone(*sensor)
 	piAlarm.Zones[zone.Id] = &zone
 	piAlarm.Updated = time.Now()
+}
+
+func getZoneById(id string) (zone *Zone) {
+	if piAlarm.Zones[id] == nil {
+		return nil
+	}
+
+	zone = new (Zone)
+	copyZone(zone, piAlarm.Zones[id])
+	return
+}
+
+func copyZone(zone1 *Zone, zone2 *Zone) {
+	zone1.Id = zone2.Id
+	zone1.Type = zone2.Type
+	zone1.ZoneName = zone2.ZoneName
+	zone1.State = zone2.State
+	zone1.Subunit = zone2.Subunit
+	zone1.Battery = zone2.Battery
+	zone1.Data = zone2.Data
+	zone1.Updated = zone2.Updated
 }
 
 func setCurState(curState string) {

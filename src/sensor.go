@@ -4,6 +4,7 @@ import (
 	"strings"
 	"log"
 	"encoding/json"
+	"time"
 )
 
 const (
@@ -23,7 +24,8 @@ type Sensor struct {
 	State string    `json:"state"`
 	Subunit string  `json:"subunit"`
 	Battery string  `json:"batter"`
-	Data string 	`json:"data"`
+	Data string 	`json:"thedata"`
+	Updated time.Time `json:"updatedby"`
 }
 
 func unmarshalSensor(jsonData []byte) (sensor Sensor) {	
@@ -61,6 +63,7 @@ func makeSensorEvent(data string) (sensor Sensor) {
 	sensor.Data = data
 	sensor.Id = data[0:2]
 	sensor.ZoneName = lookupZoneName(sensor.Id)
+	sensor.Updated = time.Now()
 
 	data = data[2:]
 
