@@ -11,7 +11,7 @@
 <script src="http://code.angularjs.org/1.2.10/angular.min.js"></script>
 <body ng-controller="MainCtl">
 	<div class="jumbotron">
-
+		
 		<button class="btn btn-primary pull-right" ng-click="disarm()">
 			<i class="fas fa-lock-open"></i> Disarm
 		</button>
@@ -24,6 +24,17 @@
 		</button>
 		
 		<h3>My Alarm System</h3>
+		<dl class="dl-horizontal">
+			<dt>System Id:</dt>
+			<dd>{{sysinfo.macid}}</dd>
+			<dt>State:</dt>
+			<dd>{{sysinfo.curstate}}</dd>
+			<dt>Wanted State:</dt>
+			<dd>{{sysinfo.wantedstate}}</dd>
+			<dt>Updated:</dt>
+			<dd>{{sysinfo.updatedby}}</dd>
+		</dl>
+
 	</div>
 	<div class="container-fluid">
 		<div class="row">
@@ -76,17 +87,29 @@
 		var Zone = $resource("/zones/:id", {id: '@id'}, {
 			update: {method: 'PUT'}
 		});
+
 		var Arm = $resource("/arm", {}, {
 			arm: {method: 'POST'},
+			perimeter: {method: 'PUT'},
 			disarm: {method: 'DELETE'}
 		});
 
-		$scope.selected = null;
+		var SysInfo = $resource("/sysinfo", {}, {})
+
+		$scope.getsysinfo = function() {
+			SysInfo.query(function(data){
+				$scope.sysinfos = data;
+				$scope.sysinfo = $scope.sysinfos[0]
+			}, function(error){
+				alert(error.data);
+			});
+		};
 
 		$scope.list = function(idx){
 			// Notice calls to Zone are often given callbacks.
 			Zone.query(function(data){
 				$scope.zones = data;
+				console.log($scope.zones)
 				if(idx != undefined) {
 					$scope.selected = $scope.zones[idx];
 					$scope.selected.idx = idx;
@@ -96,9 +119,12 @@
 			});
 		};
 
+		$scope.selected = null;
 		$scope.list();
+		$scope.getsysinfo();
 
 		setInterval(() => $scope.list(), 15000);
+		setInterval(() => $scope.getsysinfo(), 15000);
 
 		$scope.get = function(idx){
 			// Passing parameters to Zone calls will become arguments if
@@ -154,13 +180,27 @@
 		};
 
 		$scope.arm = function() {
-			theArm = new Arm()
-			theArm.$arm()
+			theArm = new Arm();
+			var passcode = prompt("Enter passcode");
+			theArm.passcode = passcode;
+
+			theArm.$arm();
+			$scope.list();
+			$scope.getsysinfo();
 		}
 
 		$scope.disarm = function() {
-			theArm = new Arm()
-			theArm.$disarm()
+			theArm = new Arm();
+			theArm.$disarm();
+			$scope.list();
+			$scope.getsysinfo();		
+		}
+
+		$scope.perimeter = function() {
+			theArm = new Arm();
+			theArm.$perimeter();
+			$scope.list();
+			$scope.getsysinfo();
 		}
 
 	}]);

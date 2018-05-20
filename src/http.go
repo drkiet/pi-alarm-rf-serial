@@ -161,12 +161,28 @@ func parseZoneRequest(r *http.Request) (Zone, *handlerError) {
 }
 
 func armHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    setWantedState(ARMED)
     return "ARMED!", nil
 }    
 
+func perimeterHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    setWantedState(PERIMETERED)
+    return "PERIMETERED!", nil
+}  
+
 func disarmHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    setWantedState(DISARMED)
+    soundAlarmOff()
     return "DISARMED!", nil
 }   
+
+func getSystemHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerError) {
+    sysInfos := make([]PiAlarm, 0)
+    sysInfo := getSystemInfo()
+    sysInfos = append(sysInfos, *sysInfo)
+    return sysInfos, nil
+} 
+
 /**
  */
 func httpServer(serverEndpoint string) {
@@ -189,7 +205,10 @@ func httpServer(serverEndpoint string) {
     router.Handle("/zones/{id}", handler(removeZoneHandler)).Methods("DELETE")
 
     router.Handle("/arm", handler(armHandler)).Methods("POST")
+    router.Handle("/arm", handler(perimeterHandler)).Methods("PUT")
     router.Handle("/arm", handler(disarmHandler)).Methods("DELETE")
+
+    router.Handle("/sysinfo", handler(getSystemHandler)).Methods("GET")
 
     router.PathPrefix("/static/").Handler(http.StripPrefix("/static", fileHandler))
     http.Handle("/", router)

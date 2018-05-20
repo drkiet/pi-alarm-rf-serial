@@ -20,6 +20,7 @@ func udpReceiver(sensorCh chan Sensor) {
 	fmt.Println("\n**** UDP Receiver ****\n")
 	for {
         data := udpReceive()
+        recordEvent("UDPRX", data)
         sensor := makeSensorEvent(data)
         
         if sensor.Id != "" {

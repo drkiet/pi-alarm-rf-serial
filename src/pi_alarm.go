@@ -20,14 +20,33 @@ const (
 type Zone Sensor
 
 type PiAlarm struct {
-	MacId, Owner, Email, 
-	Cell, NotifyVia       string
-	Zones                 map[string]*Zone
-	CurState, WantedState string	
-	Updated               time.Time
+	Id          string    `json:"id"`
+	MacId       string    `json:"macid"`
+	Owner       string    `json:"owner"`
+	Email       string    `json:"email"`
+	Cell        string    `json:"cell"`
+	NotifyVia   string    `json:"notifyvia"`
+	Zones       map[string]*Zone `json:"zones"`
+	CurState    string    `json:"curstate"`
+	WantedState string	  `json:"wantedstate"`
+	Updated     time.Time `json:"updatedby"`
 }
 
 var piAlarm PiAlarm
+
+func getSystemInfo() (sysInfo *PiAlarm) {
+	sysInfo = new(PiAlarm)
+	sysInfo.Id          = "1234"
+	sysInfo.MacId       = piAlarm.MacId
+	sysInfo.Owner       = piAlarm.Owner
+	sysInfo.Email       = piAlarm.Email
+	sysInfo.Cell        = piAlarm.Cell
+	sysInfo.CurState    = piAlarm.CurState
+	sysInfo.WantedState = piAlarm.WantedState
+	sysInfo.Updated     = piAlarm.Updated
+	sysInfo.Zones       = piAlarm.Zones
+	return sysInfo
+}
 
 func setOwner(owner string) {
 	piAlarm.Owner = owner
@@ -56,10 +75,12 @@ func addZone (zoneCfg string) {
 
 func updateZoneName(id string, zoneName string) {
 	piAlarm.Zones[id].ZoneName = zoneName
+	piAlarm.Updated = time.Now()
 }
 
 func removeZone(id string) {
 	delete(piAlarm.Zones, id)
+	piAlarm.Updated = time.Now()
 }
 
 func updateZone(sensor *Sensor) {
@@ -89,12 +110,22 @@ func copyZone(zone1 *Zone, zone2 *Zone) {
 	zone1.Updated = zone2.Updated
 }
 
+func getCurState() (curState string) {
+	return piAlarm.CurState
+}
+
 func setCurState(curState string) {
 	piAlarm.CurState = curState
+	piAlarm.Updated = time.Now()
+}
+
+func getWantedState() (wantedState string) {
+	return piAlarm.WantedState
 }
 
 func setWantedState(wantedState string) {
 	piAlarm.WantedState = wantedState
+	piAlarm.Updated = time.Now()
 }
 
 func setUpdated(updated time.Time) {
@@ -121,6 +152,15 @@ func getFormattedZoneStates() (zonesState []string) {
 	return
 }
 
+const (
+	ARMED = "ARMED"
+	DISARMED = "DISARMED"
+	PERIMETERED = "PERIMETERED"
+	ALARMED = "ALARMED"
+	FAULT = "FAULT"
+	NOFAULT = "NOFAULT"
+)
+
 // Initializing the Pi alarm before operation.
 func piAlarmInit() {
 	piAlarm.MacId = getMacAddr()
@@ -136,13 +176,16 @@ func piAlarmInit() {
 	}
 
 	emailInit()
+	setWantedState("DISARMED")
+	setCurState("NOFAULT")
 
 }
 
 // Managing Pi alarms with RF base station and sensors.
 func managePiAlarm() {
 	log.Println("**** Alarm Manager ****")
-	piAlarmInit()	
+	piAlarmInit()
+	makeEventLog()
 
 	sensorCh := make(chan Sensor)
 	if runsOnPi() {
@@ -182,24 +225,39 @@ func printPiAlarm() {
 func printZones(zones map[string]*Zone) {
 	zonesInfo := fmt.Sprintf("\n*** Zones(%d) ***", len(zones))
 	for _, zone := range zones {
-		zonesInfo += "\n\n     Id: " + zone.Id
-		zonesInfo += "\nZoneName: " + zone.ZoneName
-		zonesInfo += "\n    Type: " + zone.Type
-		zonesInfo += "\n   State: " + zone.State
-		zonesInfo += "\n Subunit: " + zone.Subunit
-		zonesInfo += "\n Battery: " + zone.Battery
-		zonesInfo += "\n    Data: " + zone.Data
+		zonesInfo += printZone(*zone)
 	}
 	fmt.Println(zonesInfo)
 }
 
-func lookupZoneName(id string) (zoneName string) {
-	for _, zone := range piAlarm.Zones {
-		if id == zone.Id {
-			zoneName = zone.ZoneName
-			return
-		}
-	}
-	zoneName = "NONAME"
+func printZone(zone Zone) (zoneInfo string) {
+	zoneInfo = ""
+	zoneInfo += "\n\n     Id: " + zone.Id
+	zoneInfo += "\nZoneName: " + zone.ZoneName
+	zoneInfo += "\n    Type: " + zone.Type
+	zoneInfo += "\n   State: " + zone.State
+	zoneInfo += "\n Subunit: " + zone.Subunit
+	zoneInfo += "\n Battery: " + zone.Battery
+	zoneInfo += "\n    Data: " + zone.Data
 	return
+}
+
+func lookupZoneName(id string) (zoneName string) {
+	zone := piAlarm.Zones[id]
+	
+	if zone != nil {
+		zoneName = zone.ZoneName
+	} else {
+		zoneName = "NONAME"
+	}
+
+	return
+}
+
+func soundAlarm() {
+	fmt.Println("*** SOUND ALARMED ON ****")
+}
+
+func soundAlarmOff() {
+	fmt.Println("*** SOUND ALARMED OFF ****")
 }

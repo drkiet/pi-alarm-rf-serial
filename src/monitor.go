@@ -6,6 +6,7 @@ import (
 )
 
 var trackedZones map[string]*Zone
+var soundedAlarm bool = false
 
 func trackZone(zone *Zone) {
 	trackedZones[zone.Id] = zone
@@ -20,7 +21,8 @@ func isTrackedZone(zone *Zone) (tracked bool) {
 }
 
 func untrackZone(zone *Zone) {
-	trackedZones[zone.Id] = nil
+	fmt.Println("** Untracking zone ***")
+	delete(trackedZones, zone.Id)
 }
 
 func notifyViaEmail (zone *Zone) {
@@ -46,6 +48,32 @@ func actNow(zones map[string]*Zone) {
 		} else {
 			// fmt.Println(zone.ZoneName, ":", zone.State)
 		}
+	}
+
+	if getWantedState() == ARMED {
+		if len(trackedZones) > 0 {
+			setCurState(ALARMED)
+		}
+	} else if getWantedState() == PERIMETERED {
+		if len(trackedZones) > 0 {
+			setCurState(ALARMED)
+		} // other sensor states later
+	} else if getWantedState() == DISARMED {
+		if len(trackedZones) > 0 {
+			setCurState(FAULT)
+		} else {
+			setCurState(NOFAULT)
+		}
+	}
+
+	if getCurState() == ALARMED {
+		if !soundedAlarm {
+			soundAlarm()
+			soundedAlarm = true
+		}
+	} else if soundedAlarm {
+		soundAlarmOff();
+		soundedAlarm = false
 	}
 }
 

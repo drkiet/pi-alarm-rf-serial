@@ -59,6 +59,7 @@ func rfReceiver(sensorCh chan Sensor) {
 	fmt.Println("\n**** RF Receiver ****\n")
 	for {
         data := rfReceive()
+        recordEvent("RFRX", data)
         log.Println("managePiAlarm: ", data)
         sensor := makeSensorEvent(data)
         log.Println("**** rfReceiver: ", sensor)

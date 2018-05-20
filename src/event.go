@@ -33,6 +33,7 @@ func marshalEvent(event Event) (jsonData []byte) {
  * make event
  */
 func makeEvent(sourceId string, eventType string, data string) (event *Event) {
+    event = new(Event)
     event.SourceId = sourceId
     event.Type = eventType
     event.Data = data
@@ -50,6 +51,8 @@ func makeEventLog() {
 /**
  * append an event json object to event log
  */
-func recordEvent(event []byte) {
-    eventFile.Write(event)
+func recordEvent(eventType string, data string) {
+    event := makeEvent(getMacAddr(), eventType, data)
+    eventFile.Write(marshalEvent(*event))
+    eventFile.WriteString("\n")
 }
