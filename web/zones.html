@@ -42,9 +42,12 @@
 				<h3>My Zones</h3>
 				<ul class="nav nav-pills nav-stacked">
 					<li ng-class="{active: zone.zonename == selected.zonename}" ng-repeat="zone in zones">
-						<button class="btn btn-primary form-control" ng-click="get($index)">
-					<i class="fas fa-door-open"></i>  {{zone.id}}. {{zone.zonename}} ({{zone.state}})
-				</button>
+						<button ng-show="!zone.open" class="btn btn-primary form-control" ng-click="get($index)">
+							<i class="fas fa-door-closed"></i>  {{zone.id}}. {{zone.zonename}} ({{zone.state}})
+						</button>
+						<button ng-show="zone.open" class="btn btn-danger form-control" ng-click="get($index)">
+							<i class="fas fa-door-open"></i>  {{zone.id}}. {{zone.zonename}} ({{zone.state}})
+						</button>
 					</li>
 				</ul>
 			</div>
@@ -109,7 +112,17 @@
 			// Notice calls to Zone are often given callbacks.
 			Zone.query(function(data){
 				$scope.zones = data;
+
+				for (i = 0; i < $scope.zones.length; i++) {
+					if ($scope.zones[i].state == "CLOSED") {
+						$scope.zones[i].open = false
+					} else {
+						$scope.zones[i].open = true
+					}
+				}
+
 				console.log($scope.zones)
+				
 				if(idx != undefined) {
 					$scope.selected = $scope.zones[idx];
 					$scope.selected.idx = idx;
@@ -181,8 +194,7 @@
 
 		$scope.arm = function() {
 			theArm = new Arm();
-			var passcode = prompt("Enter passcode");
-			theArm.passcode = passcode;
+			theArm.passcode = prompt("Enter passcode");
 
 			theArm.$arm();
 			$scope.list();
@@ -191,6 +203,7 @@
 
 		$scope.disarm = function() {
 			theArm = new Arm();
+			theArm.passcode = prompt("Enter passcode");
 			theArm.$disarm();
 			$scope.list();
 			$scope.getsysinfo();		
@@ -198,6 +211,7 @@
 
 		$scope.perimeter = function() {
 			theArm = new Arm();
+			theArm.passcode = prompt("Enter passcode");
 			theArm.$perimeter();
 			$scope.list();
 			$scope.getsysinfo();

@@ -71,10 +71,16 @@ func actNow(zones map[string]*Zone) {
 			soundAlarm()
 			soundedAlarm = true
 		}
-	} else if soundedAlarm {
-		soundAlarmOff();
-		soundedAlarm = false
+	} 
+
+	if getWantedState() == DISARMED {
+		if soundedAlarm {
+			soundAlarmOff();
+			soundedAlarm = false
+		}
+
 	}
+
 }
 
 func healthMonitor() {
