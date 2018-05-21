@@ -176,6 +176,7 @@ func parseCmdRequest(r *http.Request) (Cmd, *handlerError) {
 
     return payload, nil
 }
+
 type Cmd struct {
     Passcode string `json:"passcode"`
     Exec string     `json:"exec"`
@@ -199,6 +200,12 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) (interface{}, *handlerEr
             setWantedState(PERIMETERED)
             payload.Result = "SUCCESS"
 
+        case "AUTHORIZE":
+            if isAuthorized(payload.Passcode) {
+                payload.Result = "AUTHORIZED"
+            } else {
+                payload.Result = "UNAUTH"
+            }
         default:
             payload.Result = "BADCMD"
         }

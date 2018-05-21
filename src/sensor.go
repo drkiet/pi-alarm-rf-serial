@@ -5,17 +5,23 @@ import (
 	"log"
 	"encoding/json"
 	"time"
+	"strconv"
 )
 
 const (
 	Button = "BUTTON"
 	Battery = "BATT"
+	Sleep = "SLEEPING"
+	Awake = "AWAKE"
 )
 
 const (
 	SENSOR_OPEN = "OPEN"
 	SENSOR_CLOSED = "CLOSED"
 	SENSOR_NOSTATE = "NOSTATE"
+	SENSOR_LOW_BATTERY = "LOW-BATTERY"
+	SENSOR_SLEEP = "SLEEPING"
+	SENSOR_AWAKE = "AWAKE"
 )
 type Sensor struct {
 	Id string       `json:"id"`
@@ -70,17 +76,27 @@ func makeSensorEvent(data string) (sensor Sensor) {
 	if isButton(data) {
 		sensor.Subunit = string(data[6:7])
 		sensor.State = string(data[7:9])
+
 		if sensor.State == "ON" {
 			sensor.State = SENSOR_CLOSED
 		} else if sensor.State == "OF" {
 			sensor.State = SENSOR_OPEN
 		} else { 
 			sensor.State = SENSOR_NOSTATE
-		}
-
-		sensor.Type = Button
-	} else if strings.HasPrefix(data, Battery) {
+		}	
+	} else if isBattery(data) {
 		sensor.Type = Battery
+		sensor.State = string(data[4:8])
+		batt, _ := strconv.Atoi(string(sensor.State[:1]))
+
+		if batt < 3 {
+			sensor.State = SENSOR_LOW_BATTERY
+		} 
+	} else if isSleeping(data) {
+		sensor.State = SENSOR_SLEEP
+
+	} else if isAwake(data) {
+		sensor.State = SENSOR_AWAKE
 	} else {
 		log.Println("NOT supported feature: " + data)
 	}
@@ -88,21 +104,17 @@ func makeSensorEvent(data string) (sensor Sensor) {
 }
 
 func isButton(data string) (isButton bool) {
-	if strings.HasPrefix(data, Button) {
-		isButton = true
-	} else {
-		isButton = false
-	}
-
-	return
+	return strings.HasPrefix(data, Button)
 }
 
 func isBattery(data string) (isBattery bool) {
-	if strings.HasPrefix(data, Battery) {
-		isBattery = true
-	} else {
-		isBattery = false
-	}
+	return strings.HasPrefix(data, Battery)
+}
 
-	return	
+func isSleeping(data string) (isSleeping bool) {
+	return strings.HasPrefix(data, Sleep)
+}
+
+func isAwake(data string) (isAwake bool) {
+	return strings.HasPrefix(data, Awake)
 }

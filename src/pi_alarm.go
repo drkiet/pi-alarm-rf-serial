@@ -30,6 +30,7 @@ type PiAlarm struct {
 	CurState    string    `json:"curstate"`
 	WantedState string	  `json:"wantedstate"`
 	Updated     time.Time `json:"updatedby"`
+	Version     string    `json:"version"`
 }
 
 var piAlarm PiAlarm
@@ -46,6 +47,7 @@ func getSystemInfo() (sysInfo *PiAlarm) {
 	sysInfo.WantedState = piAlarm.WantedState
 	sysInfo.Updated     = piAlarm.Updated
 	sysInfo.Zones       = piAlarm.Zones
+	sysInfo.Version     = piAlarm.Version
 	return sysInfo
 }
 
@@ -131,8 +133,10 @@ func getCurState() (curState string) {
 }
 
 func setCurState(curState string) {
-	piAlarm.CurState = curState
-	piAlarm.Updated = time.Now()
+	if curState != piAlarm.CurState {
+		piAlarm.CurState = curState
+		piAlarm.Updated = time.Now()
+	}
 }
 
 func getWantedState() (wantedState string) {
@@ -140,8 +144,10 @@ func getWantedState() (wantedState string) {
 }
 
 func setWantedState(wantedState string) {
-	piAlarm.WantedState = wantedState
-	piAlarm.Updated = time.Now()
+	if wantedState != piAlarm.WantedState {
+		piAlarm.WantedState = wantedState
+		piAlarm.Updated = time.Now()
+	}
 }
 
 func setUpdated(updated time.Time) {
@@ -183,6 +189,7 @@ func piAlarmInit() {
 	piAlarm.Zones = make(map[string]*Zone)
 	
 	piAlarm.Updated = time.Now()
+	piAlarm.Version = getVersion()
 	loadPiAlarmCfg()
 
 	if runsOnPi() {
@@ -232,6 +239,7 @@ func printPiAlarm() {
 	piAlarmInfo += "\n   CurState: " + piAlarm.CurState
 	piAlarmInfo += "\nWantedState: " + piAlarm.WantedState
 	piAlarmInfo += "\n    Updated: " + piAlarm.Updated.String()
+	piAlarmInfo += "\n    Version: " + piAlarm.Version
 
 	fmt.Println(piAlarmInfo)
 	printZones(piAlarm.Zones)

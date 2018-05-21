@@ -7,6 +7,7 @@ import (
 )
 
 var runMode, logName, cfgServerEndpoint, cfgUDPEndpoint string
+var piAlarmVersion string = "0.1"
 
 const (
 	ConfigFolder = "./config/"
@@ -46,6 +47,10 @@ func runsOnPi() (runsOnPi bool) {
 
 func getServerEndpoint() (serverEndpoint string) {
 	return cfgServerEndpoint
+}
+
+func getVersion() (version string) {
+	return piAlarmVersion
 }
 
 func getUdpEndpoint() (udpEndpoint string) {

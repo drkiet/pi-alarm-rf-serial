@@ -21,7 +21,6 @@ func isTrackedZone(zone *Zone) (tracked bool) {
 }
 
 func untrackZone(zone *Zone) {
-	fmt.Println("** Untracking zone ***")
 	delete(trackedZones, zone.Id)
 }
 

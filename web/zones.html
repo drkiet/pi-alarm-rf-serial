@@ -10,23 +10,31 @@
 <!-- putting this at the top to remove the jarring load -->
 <script src="http://code.angularjs.org/1.2.10/angular.min.js"></script>
 <body ng-controller="MainCtl">
+	<div class="container">
 	<div class="jumbotron">
-		
-		<button class="btn btn-primary pull-right" ng-click="disarm()">
+		<div class="btn-toolbar">
+		<button ng-disabled="disarmed" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="disarm()">
 			<i class="fas fa-lock-open"></i> Disarm
 		</button>
-		<button class="btn btn-primary pull-right" ng-click="arm()">
+		<button ng-disabled="armed" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="arm()">
 			<i class="fas fa-lock"></i> Arm
 		</button>
-
-		<button class="btn btn-primary pull-right" ng-click="perimeter()">
+		<button ng-disabled="perimetered" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="perimeter()">
 			<i class="far fa-square"></i> Perimeter
 		</button>
-		
-		<h3>My Alarm System</h3>
+		<button ng-hide="authorized" class="btn btn-primary pull-right" ng-click="authorize()">
+			<i class="fas fa-sign-in-alt"></i> Enter
+		</button>
+		<button ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="unauthorize()">
+			<i class="fas fa-sign-out-alt"></i> Exit
+		</button>
+		</div>
+		<h3><strong>My Alarm System</strong></h3>
 		<dl class="dl-horizontal">
 			<dt>System Id:</dt>
 			<dd>{{sysinfo.macid}}</dd>
+			<dt>Owner:</dt>
+			<dd>{{sysinfo.owner}}</dd>
 			<dt>State:</dt>
 			<dd>{{sysinfo.curstate}}</dd>
 			<dt>Wanted State:</dt>
@@ -36,13 +44,14 @@
 		</dl>
 
 	</div>
+	</div>
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-sm-3 well">
 				<h3>My Zones</h3>
 				<ul class="nav nav-pills nav-stacked">
 					<li ng-class="{active: zone.zonename == selected.zonename}" ng-repeat="zone in zones">
-						<button ng-show="!zone.open" class="btn btn-primary form-control" ng-click="get($index)">
+						<button ng-show="!zone.open" class="btn btn-success form-control" ng-click="get($index)">
 							<i class="fas fa-door-closed"></i>  {{zone.id}}. {{zone.zonename}} ({{zone.state}})
 						</button>
 						<button ng-show="zone.open" class="btn btn-danger form-control" ng-click="get($index)">
@@ -52,7 +61,7 @@
 				</ul>
 			</div>
 			<div class="col-sm-6" ng-show="selected">
-				<h2>{{selected.zonename}}</h2>
+				<h4>{{selected.zonename}}</h4>
 				<dl class="dl-horizontal">
 					<dt>Id:</dt>
 					<dd>{{selected.id}}</dd>
@@ -66,27 +75,31 @@
 
 			</div>
 			<div class="col-sm-3" ng-show="selected">
-				<button class="btn btn-primary form-control" ng-click="update(selected.idx)">
+				<button ng-hide="!authorized" class="btn btn-primary form-control" ng-click="update(selected.idx)">
 					<i class="fas fa-pencil-alt"></i> Update this zone
 				</button>
-				<button class="btn btn-danger form-control" ng-click="remove(selected.idx)">
+				<button ng-hide="!authorized" class="btn btn-danger form-control" ng-click="remove(selected.idx)">
 					<i class="fas fa-trash-alt"></i> Remove this zone
 				</button>
-				<button class="btn btn-primary form-control" ng-click="add()">
+				<button ng-hide="!authorized" class="btn btn-primary form-control" ng-click="add()">
 					<i class="fas fa-plus"></i> Add new zone
 				</button>
 			</div>
 		</div>
 	</div>
+	<footer class="footer-copyright blue py-3 text-center text-white">
+		<i class="far fa-copyright"></i> 2018 Copyright: Kiet T. Tran, Ph.D.
+		<br/>
+		Version: {{sysinfo.version}}
+	</footer>
 <script src="http://code.angularjs.org/1.2.10/angular-resource.min.js"></script>
 <script>
-	// new dependency: ngResource is included just above
+	
 	var myapp = new angular.module("myapp", ["ngResource"]);
 
-	// inject the $resource dependency here
+	
 	myapp.controller("MainCtl", ["$scope", "$resource", function($scope, $resource){
-		// I designed the backend to play nicely with angularjs so this is all the
-		// setup we need to do all of the ususal operations.
+		
 		var Zone = $resource("/zones/:id", {id: '@id'}, {
 			update: {method: 'PUT'}
 		});
@@ -101,18 +114,34 @@
 			SysInfo.query(function(data){
 				$scope.sysinfos = data;
 				$scope.sysinfo = $scope.sysinfos[0]
+
+				if ($scope.sysinfo.wantedstate == "DISARMED") {
+					$scope.disarmed = true;
+				} else {
+					$scope.disarmed = false;
+				}
+
+				if ($scope.sysinfo.wantedstate == "ARMED" ||
+					$scope.sysinfo.wantedstate == "PERIMETERED") {
+					$scope.armed = true;
+					$scope.perimetered = true;
+				} else {
+					$scope.armed = false;
+					$scope.perimetered = false;
+				}
 			}, function(error){
 				alert(error.data);
 			});
 		};
 
 		$scope.list = function(idx){
-			// Notice calls to Zone are often given callbacks.
+			
 			Zone.query(function(data){
 				$scope.zones = data;
 
 				for (i = 0; i < $scope.zones.length; i++) {
-					if ($scope.zones[i].state == "CLOSED") {
+					if ($scope.zones[i].state == "CLOSED" ||
+						$scope.zones[i].state == "SLEEPING") {
 						$scope.zones[i].open = false
 					} else {
 						$scope.zones[i].open = true
@@ -135,12 +164,10 @@
 		$scope.list();
 		$scope.getsysinfo();
 
-		setInterval(() => $scope.list(), 15000);
-		setInterval(() => $scope.getsysinfo(), 15000);
+		setInterval(() => $scope.list(), 5000);
+		setInterval(() => $scope.getsysinfo(), 5000);
 
 		$scope.get = function(idx){
-			// Passing parameters to Zone calls will become arguments if
-			// we haven't defined it as part of the path (we did with id)
 			Zone.get({id: $scope.zones[idx].id}, function(data){
 				$scope.selected = data;
 				$scope.selected.idx = idx;
@@ -148,7 +175,11 @@
 		};
 
 		$scope.add = function() {
-			// I was lazy with the user input.
+			if ($scope.passcode == null) {
+				alert("Enter passcode first!");
+				return;
+			}
+
 			id = null
 			var theId = prompt("Enter the zone id.");
 			if(theId == null){
@@ -158,7 +189,7 @@
 			if(zonename == null){
 				return;
 			}
-			// Creating a blank zone object means you can still $save
+			
 			var newZone = new Zone();
 			newZone.id = theId;
 			newZone.zonename = zonename;
@@ -168,6 +199,11 @@
 		};
 
 		$scope.update = function(idx) {
+			if ($scope.passcode == null) {
+				alert("Enter passcode first!");
+				return;
+			}
+
 			var zone = $scope.zones[idx];
 			var id = prompt("Enter a new id", zone.id);
 			if(id == null) {
@@ -179,13 +215,18 @@
 			}
 			zone.id = id;
 			zone.zonename = zonename;
-			// Noticed I never created a new Zone()?
+			
 			zone.$update();
 
 			$scope.list(idx);
 		};
 
 		$scope.remove = function(idx){
+			if ($scope.passcode == null) {
+				alert("Enter passcode first!");
+				return;
+			}
+
 			$scope.zones[idx].$delete();
 			$scope.selected = null;
 			$scope.list();
@@ -229,6 +270,22 @@
 			$scope.getsysinfo();
 		}
 
+		$scope.unauthorize = function() {
+			$scope.passcode = null;
+			$scope.authorized = false;
+		}
+
+		$scope.authorize = function() {
+			cmd = new Command();
+			cmd.passcode = enterPasscode();
+			cmd.exec = "AUTHORIZE"
+			cmd.result = ""
+
+			retval = cmd.$cmd().then(function (response) {
+				process(response);
+			});
+		}
+
 		function enterPasscode() {
 			if ($scope.passcode == null) {
 				$scope.passcode = prompt("Enter passcode");
@@ -241,7 +298,10 @@
 				console.log ("Unauthorized!");
 				alert("Unauthorized!");
 				$scope.passcode = null;
-			} 
+				$scope.authorized = false;
+			} else if (response.result == "AUTHORIZED") {
+				$scope.authorized = true;
+			}
 		}
 
 	}]);
