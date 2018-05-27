@@ -3,47 +3,46 @@
 <head>
 	<meta charset="UTF-8">
 	<title>My Alarm System</title>
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.3.7/cyborg/bootstrap.min.css">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	<link rel="stylesheet" href="./css/fontawesome/fontawesome-all.css">
+	<link rel="stylesheet" href="./css/bootstrap.min.css">
 </head>
 <!-- putting this at the top to remove the jarring load -->
 <script src="http://code.angularjs.org/1.2.10/angular.min.js"></script>
 <body ng-controller="MainCtl">
 	<div class="container">
-	<div class="jumbotron">
-		<div class="btn-toolbar">
-		<button ng-disabled="disarmed" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="disarm()">
-			<i class="fas fa-lock-open"></i> Disarm
-		</button>
-		<button ng-disabled="armed" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="arm()">
-			<i class="fas fa-lock"></i> Arm
-		</button>
-		<button ng-disabled="perimetered" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="perimeter()">
-			<i class="far fa-square"></i> Perimeter
-		</button>
-		<button ng-hide="authorized" class="btn btn-primary pull-right" ng-click="authorize()">
-			<i class="fas fa-sign-in-alt"></i> Enter
-		</button>
-		<button ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="unauthorize()">
-			<i class="fas fa-sign-out-alt"></i> Exit
-		</button>
-		</div>
-		<h3><strong>My Alarm System</strong></h3>
-		<dl class="dl-horizontal">
-			<dt>System Id:</dt>
-			<dd>{{sysinfo.macid}}</dd>
-			<dt>Owner:</dt>
-			<dd>{{sysinfo.owner}}</dd>
-			<dt>State:</dt>
-			<dd>{{sysinfo.curstate}}</dd>
-			<dt>Wanted State:</dt>
-			<dd>{{sysinfo.wantedstate}}</dd>
-			<dt>Updated:</dt>
-			<dd>{{sysinfo.updatedby}}</dd>
-		</dl>
+		<div class="jumbotron">
+			<div class="btn-toolbar">
+			<button ng-disabled="disarmed" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="disarm()">
+				<i class="fas fa-lock-open"></i> Disarm
+			</button>
+			<button ng-disabled="armed" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="arm()">
+				<i class="fas fa-lock"></i> Arm
+			</button>
+			<button ng-disabled="perimetered" ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="perimeter()">
+				<i class="far fa-square"></i> Perimeter
+			</button>
+			<button ng-hide="authorized" class="btn btn-primary pull-right" ng-click="authorize()">
+				<i class="fas fa-sign-in-alt"></i> Enter
+			</button>
+			<button ng-hide="!authorized" class="btn btn-primary pull-right" ng-click="unauthorize()">
+				<i class="fas fa-sign-out-alt"></i> Exit
+			</button>
+			</div>
+			<h3><strong>My Alarm System</strong></h3>
+			<dl class="dl-horizontal">
+				<dt>System Id:</dt>
+				<dd>{{sysinfo.macid}}</dd>
+				<dt>Owner:</dt>
+				<dd>{{sysinfo.owner}}</dd>
+				<dt>State:</dt>
+				<dd>{{sysinfo.curstate}}</dd>
+				<dt>Wanted State:</dt>
+				<dd>{{sysinfo.wantedstate}}</dd>
+				<dt>Updated:</dt>
+				<dd>{{sysinfo.updatedby}}</dd>
+			</dl>
 
-	</div>
+		</div>
 	</div>
 	<div class="container-fluid">
 		<div class="row">
@@ -87,11 +86,13 @@
 			</div>
 		</div>
 	</div>
+
 	<footer class="footer-copyright blue py-3 text-center text-white">
 		<i class="far fa-copyright"></i> 2018 Copyright: Kiet T. Tran, Ph.D.
 		<br/>
 		Version: {{sysinfo.version}}
 	</footer>
+	
 <script src="http://code.angularjs.org/1.2.10/angular-resource.min.js"></script>
 <script>
 	
