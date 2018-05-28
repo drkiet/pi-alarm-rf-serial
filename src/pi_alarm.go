@@ -1,7 +1,7 @@
 package main 
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"time"
 	"strings"
 	"fmt"
@@ -72,6 +72,7 @@ func getPasscode() (passcode string) {
 }
 
 func isAuthorized(enteredPasscode string) (authorized bool) {
+	log.Info("authorize: ", enteredPasscode, "/", passcode)
 	if enteredPasscode == passcode {
 		return true
 	}
